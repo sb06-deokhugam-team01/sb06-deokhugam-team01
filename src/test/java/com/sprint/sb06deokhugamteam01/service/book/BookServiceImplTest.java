@@ -1,8 +1,8 @@
 package com.sprint.sb06deokhugamteam01.service.book;
 
-import com.sprint.sb06deokhugamteam01.dto.book.BookCreateRequest;
+import com.sprint.sb06deokhugamteam01.dto.book.request.BookCreateRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.BookDto;
-import com.sprint.sb06deokhugamteam01.dto.book.BookUpdateRequest;
+import com.sprint.sb06deokhugamteam01.dto.book.request.BookUpdateRequest;
 import com.sprint.sb06deokhugamteam01.exception.book.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
