@@ -66,9 +66,6 @@ class BookServiceImplTest {
                 "sdfadsfadsf"
         );
 
-        when(bookService.createBook(bookCreateRequest, null))
-                .thenThrow(AllReadyExistsIsbnException.class);
-
         //when
         AllReadyExistsIsbnException exception = assertThrows(AllReadyExistsIsbnException.class, () -> {
             bookService.createBook(bookCreateRequest, null);
@@ -92,9 +89,6 @@ class BookServiceImplTest {
                 LocalDate.now(),
                 "sdfadsfadsf"
         );
-
-        when(bookService.createBook(bookCreateRequest, null))
-                .thenThrow(InvalidIsbnException.class);
 
         //when
         InvalidIsbnException exception = assertThrows(InvalidIsbnException.class, () -> {
@@ -120,9 +114,6 @@ class BookServiceImplTest {
                 "sdfadsfadsf"
         );
 
-        when(bookService.createBook(bookCreateRequest, null))
-                .thenThrow(NoSuchBookInfoException.class);
-
         //when
         NoSuchBookInfoException exception = assertThrows(NoSuchBookInfoException.class, () -> {
             bookService.createBook(bookCreateRequest, null);
@@ -146,9 +137,6 @@ class BookServiceImplTest {
                 LocalDate.now(),
                 "sdfadsfadsf"
         );
-
-        when(bookService.createBook(bookCreateRequest, null))
-                .thenThrow(S3UploadFailedException.class);
 
         //when
         S3UploadFailedException exception = assertThrows(S3UploadFailedException.class, () -> {
