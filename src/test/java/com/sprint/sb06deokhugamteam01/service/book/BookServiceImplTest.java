@@ -3,10 +3,7 @@ package com.sprint.sb06deokhugamteam01.service.book;
 import com.sprint.sb06deokhugamteam01.dto.book.BookCreateRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.BookDto;
 import com.sprint.sb06deokhugamteam01.dto.book.BookUpdateRequest;
-import com.sprint.sb06deokhugamteam01.exception.book.AllReadyExistsIsbnException;
-import com.sprint.sb06deokhugamteam01.exception.book.InvalidIsbnException;
-import com.sprint.sb06deokhugamteam01.exception.book.NoSuchBookInfoException;
-import com.sprint.sb06deokhugamteam01.exception.book.S3UploadFailedException;
+import com.sprint.sb06deokhugamteam01.exception.book.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("BookServiceImpl 테스트")
@@ -116,7 +112,7 @@ class BookServiceImplTest {
         );
 
         //when
-        NoSuchBookInfoException exception = assertThrows(NoSuchBookInfoException.class, () -> {
+        BookInfoFetchFailedException exception = assertThrows(BookInfoFetchFailedException.class, () -> {
             bookService.createBook(bookCreateRequest, null);
         });
 
@@ -201,7 +197,7 @@ class BookServiceImplTest {
                 .build();
 
         //when
-        NoSuchBookInfoException exception = assertThrows(NoSuchBookInfoException.class, () -> {
+        BookInfoFetchFailedException exception = assertThrows(BookInfoFetchFailedException.class, () -> {
             bookService.updateBook(updateRequest, null);
         });
 
@@ -215,10 +211,14 @@ class BookServiceImplTest {
     void deleteBookById_Success() {
 
         //given
+        String bookId = "existing-book-id";
 
         //when
 
         //then
+        assertDoesNotThrow(() -> {
+            bookService.deleteBookById(bookId);
+        });
 
     }
 
@@ -227,10 +227,15 @@ class BookServiceImplTest {
     void deleteBookById_Fail_NoSuchBook() {
 
         //given
+        String bookId = "existing-book-id";
 
         //when
+        NoSuchBookException exception = assertThrows(NoSuchBookException.class, () -> {
+            bookService.deleteBookById(bookId);
+        });
 
         //then
+        assertEquals("존재하지 않는 도서입니다.", exception.getMessage());
 
     }
 
@@ -239,10 +244,14 @@ class BookServiceImplTest {
     void hardDeleteBookById_Success() {
 
         //given
+        String bookId = "existing-book-id";
 
         //when
 
         //then
+        assertDoesNotThrow(() -> {
+            bookService.hardDeleteBookById(bookId);
+        });
 
     }
 
@@ -251,10 +260,15 @@ class BookServiceImplTest {
     void hardDeleteBookById_Fail_NoSuchBook() {
 
         //given
+        String bookId = "existing-book-id";
 
         //when
+        NoSuchBookException exception = assertThrows(NoSuchBookException.class, () -> {
+            bookService.hardDeleteBookById(bookId);
+        });
 
         //then
+        assertEquals("존재하지 않는 도서입니다.", exception.getMessage());
 
     }
 
