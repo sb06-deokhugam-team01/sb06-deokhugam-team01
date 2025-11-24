@@ -397,28 +397,4 @@ class BookServiceImplTest {
 
     }
 
-    @Test
-    @DisplayName("paginateBooks 성공 테스트")
-    void paginateBooks() {
-
-        //given
-
-        //when
-
-        //then
-
-    }
-
-    @Test
-    @DisplayName("paginateBooks 실패 테스트 - 잘못된 페이지 매개변수")
-    void paginateBooks_Fail_InvalidPageParameters() {
-
-        //given
-
-        //when
-
-        //then
-
-    }
-
 }
