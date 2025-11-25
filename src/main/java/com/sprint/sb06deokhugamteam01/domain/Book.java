@@ -19,9 +19,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Builder
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class Book {
@@ -55,5 +53,17 @@ public class Book {
     private LocalDateTime updatedAt;
 
     private boolean isActive = true;
+
+    @Builder
+    public Book(String title, String author, String description, String publisher, LocalDate publishedDate, String isbn) {
+
+        this.title = title;
+        this.author = author;
+        this.description = description;
+        this.publisher = publisher;
+        this.publishedDate = publishedDate;
+        this.isbn = isbn;
+
+    }
 
 }
