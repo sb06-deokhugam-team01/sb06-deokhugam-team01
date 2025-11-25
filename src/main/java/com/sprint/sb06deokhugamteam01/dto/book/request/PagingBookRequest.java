@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 public record PagingBookRequest(
      String keyword,
      OrderBy orderBy,
-     SortDirection sortDirection,
+     SortDirection direction,
      String cursor,
      LocalDateTime after,
      Integer limit

@@ -9,7 +9,6 @@ import com.sprint.sb06deokhugamteam01.dto.book.response.CursorPageResponseBookDt
 import com.sprint.sb06deokhugamteam01.exception.book.*;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import org.jeasy.random.EasyRandom;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -142,8 +141,8 @@ class BookServiceImplTest {
         //given
         PagingBookRequest pagingBookRequest = PagingBookRequest.builder()
                 .keyword("test")
-                .orderBy("title")
-                .direction("asc")
+                .orderBy(PagingBookRequest.OrderBy.valueOf("title".toUpperCase()))
+                .direction(PagingBookRequest.SortDirection.ASC)
                 .cursor("test-cursor")
                 .after(LocalDateTime.now())
                 .limit(10)
@@ -211,7 +210,7 @@ class BookServiceImplTest {
 
 
         //when
-        AllReadyExistsIsbnException exception = assertThrows(AllReadyExistsIsbnException.class, () -> {
+        AlReadyExistsIsbnException exception = assertThrows(AlReadyExistsIsbnException.class, () -> {
             bookService.createBook(bookCreateRequest, null);
         });
 
@@ -324,7 +323,7 @@ class BookServiceImplTest {
                 .thenReturn(updatedBook);
 
         //when
-        BookDto result = bookService.updateBook(updateRequest, null);
+        BookDto result = bookService.updateBook(bookId, updateRequest, null);
 
         //then
         assertNotNull(result);
@@ -356,7 +355,7 @@ class BookServiceImplTest {
 
         //when
         BookInfoFetchFailedException exception = assertThrows(BookInfoFetchFailedException.class, () -> {
-            bookService.updateBook(updateRequest, null);
+            bookService.updateBook(bookDto.id(), updateRequest, null);
         });
 
         //then
