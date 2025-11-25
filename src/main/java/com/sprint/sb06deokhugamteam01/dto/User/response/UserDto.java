@@ -8,15 +8,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class UserDto {
 
-    private UUID id;
-    private String email;
-    private String nickname;
-    private LocalDateTime createdAt;
+public record UserDto(
+    UUID id,
+    String email,
+    String nickname,
+    LocalDateTime createdAt
+) {
+
+
 }
