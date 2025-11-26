@@ -1,6 +1,8 @@
 package com.sprint.sb06deokhugamteam01.service.user;
 
 import com.sprint.sb06deokhugamteam01.domain.User;
+import com.sprint.sb06deokhugamteam01.dto.User.request.UserRegisterRequest;
+import com.sprint.sb06deokhugamteam01.dto.User.response.UserDto;
 import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.UserRepository;
@@ -20,16 +22,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User createUser(String email, String nickname, String password) {
-        if (userRepository.existsByEmail(email)) {
-            throw new InvalidUserException(detailMap("email", email));
+    public User createUser(UserRegisterRequest request) {
+        if (userRepository.existsByEmail(request.email())) {
+            throw new InvalidUserException(detailMap("email", request.email()));
         }
 
         User user = User.builder()
             .id(UUID.randomUUID())
-            .email(email)
-            .nickname(nickname)
-            .password(password)
+            .email(request.email())
+            .nickname(request.nickname())
+            .password(request.password())
             .createdAt(LocalDateTime.now())
             .isActive(true)
             .build();

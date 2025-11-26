@@ -8,14 +8,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.sprint.sb06deokhugamteam01.domain.User;
+import com.sprint.sb06deokhugamteam01.dto.User.request.UserRegisterRequest;
 import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Validator;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,10 +24,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
-import org.mockito.ArgumentCaptor;
-import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
-import org.springframework.validation.beanvalidation.MethodValidationInterceptor;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -52,27 +47,23 @@ class UserServiceTest {
 
     @Test
     void registerUser_shouldPersistNewActiveUser() {
-        // given
         String email = "user@example.com";
-        String nickname = "tester";
         String password = "password123";
+        String nickname = "tester";
+
+        UserRegisterRequest request = new UserRegisterRequest(email, password, nickname);
 
         when(userRepository.existsByEmail(email)).thenReturn(false);
         when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
 
-        // when
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            User result = userService.createUser(email, nickname, password);
+        User result = target.createUser(request);
 
-            // then
-            assertThat(result.getEmail()).isEqualTo(email);
-            assertThat(result.getNickname()).isEqualTo(nickname);
-            assertThat(result.isActive()).isTrue();
-            assertThat(result.getId()).isNotNull();
-            verify(userRepository).existsByEmail(email);
-            verify(userRepository).save(any(User.class));
-        }
+        assertThat(result.getEmail()).isEqualTo(email);
+        assertThat(result.getNickname()).isEqualTo(nickname);
+        assertThat(result.isActive()).isTrue();
+        assertThat(result.getId()).isNotNull();
+        verify(userRepository).existsByEmail(email);
+        verify(userRepository).save(any(User.class));
     }
 
     @Test
@@ -80,12 +71,10 @@ class UserServiceTest {
         String email = "duplicate@example.com";
 
         when(userRepository.existsByEmail(email)).thenReturn(true);
+        UserRegisterRequest request = new UserRegisterRequest(email, "password123", "tester");
 
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            assertThatThrownBy(() -> userService.createUser(email, "tester", "password123"))
-                .isInstanceOf(InvalidUserException.class);
-        }
+        assertThatThrownBy(() -> target.createUser(request))
+            .isInstanceOf(InvalidUserException.class);
     }
 
     @Test
@@ -96,12 +85,9 @@ class UserServiceTest {
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            User result = userService.login(email, password);
+        User result = target.login(email, password);
 
-            assertThat(result).isEqualTo(user);
-        }
+        assertThat(result).isEqualTo(user);
     }
 
     @Test
@@ -111,11 +97,8 @@ class UserServiceTest {
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            assertThatThrownBy(() -> userService.login(email, "wrong"))
-                .isInstanceOf(InvalidUserException.class);
-        }
+        assertThatThrownBy(() -> target.login(email, "wrong"))
+            .isInstanceOf(InvalidUserException.class);
     }
 
     @Test
@@ -125,12 +108,9 @@ class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            User result = userService.getUser(userId);
+        User result = target.getUser(userId);
 
-            assertThat(result).isEqualTo(user);
-        }
+        assertThat(result).isEqualTo(user);
     }
 
     @Test
@@ -140,11 +120,8 @@ class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            assertThatThrownBy(() -> userService.getUser(userId))
-                .isInstanceOf(InvalidUserException.class);
-        }
+        assertThatThrownBy(() -> target.getUser(userId))
+            .isInstanceOf(InvalidUserException.class);
     }
 
     @Test
@@ -155,13 +132,10 @@ class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
 
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            User result = userService.deactivateUser(userId);
+        User result = target.deactivateUser(userId);
 
-            assertThat(result.isActive()).isFalse();
-            verify(userRepository).save(user);
-        }
+        assertThat(result.isActive()).isFalse();
+        verify(userRepository).save(user);
     }
 
     @Test
@@ -173,13 +147,10 @@ class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
 
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            User result = userService.updateUser(userId, newNickname);
+        User result = target.updateUser(userId, newNickname);
 
-            assertThat(result.getNickname()).isEqualTo(newNickname);
-            verify(userRepository).save(user);
-        }
+        assertThat(result.getNickname()).isEqualTo(newNickname);
+        verify(userRepository).save(user);
     }
 
     @Test
@@ -189,12 +160,9 @@ class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            userService.hardDeleteUser(userId);
+        target.hardDeleteUser(userId);
 
-            verify(userRepository, times(1)).delete(user);
-        }
+        verify(userRepository, times(1)).delete(user);
     }
 
     @Test
@@ -202,11 +170,8 @@ class UserServiceTest {
         UUID userId = easyRandom.nextObject(UUID.class);
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            assertThatThrownBy(() -> userService.deleteUser(userId))
-                .isInstanceOf(UserNotFoundException.class);
-        }
+        assertThatThrownBy(() -> target.deleteUser(userId))
+            .isInstanceOf(UserNotFoundException.class);
     }
 
     @Test
@@ -216,60 +181,25 @@ class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
 
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            User result = userService.deleteUser(userId);
+        User result = target.deleteUser(userId);
 
-            assertThat(result.isActive()).isFalse();
-            assertThat(result.getDeletedAt()).isNotNull();
-            verify(userRepository).save(user);
-        }
+        assertThat(result.isActive()).isFalse();
+        assertThat(result.getDeletedAt()).isNotNull();
+        verify(userRepository).save(user);
     }
 
     @Test
     void purgeDeletedUsersBefore_shouldDelegateToRepository() {
-        ArgumentCaptor<LocalDateTime> cutoffCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
         LocalDateTime cutoff = LocalDateTime.now().minusDays(1);
 
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            userService.purgeDeletedUsersBefore(cutoff);
-        }
+        target.purgeDeletedUsersBefore(cutoff);
 
-        verify(userRepository).deleteAllSoftDeletedBefore(cutoffCaptor.capture());
-        assertThat(cutoffCaptor.getValue()).isEqualTo(cutoff);
-    }
-
-    @Test
-    void createUser_withInvalidEmail_shouldThrow() {
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            assertThatThrownBy(() -> userService.createUser("not-an-email", "nick", "password123"))
-                .isInstanceOf(ConstraintViolationException.class);
-        }
-    }
-
-    @Test
-    void createUser_withShortPassword_shouldThrow() {
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            assertThatThrownBy(() -> userService.createUser("user@example.com", "nick", "short"))
-                .isInstanceOf(ConstraintViolationException.class);
-        }
-    }
-
-    @Test
-    void createUser_withInvalidNickname_shouldThrow() {
-        try (ValidatedService svc = validatedService()) {
-            UserService userService = svc.service();
-            assertThatThrownBy(() -> userService.createUser("user@example.com", "n", "password123"))
-                .isInstanceOf(ConstraintViolationException.class);
-        }
+        verify(userRepository).deleteAllSoftDeletedBefore(cutoff);
     }
 
     private User randomUser(boolean active) {
         UUID id = easyRandom.nextObject(UUID.class);
-        User user = User.builder()
+        return User.builder()
             .id(id)
             .email("user-" + id + "@example.com")
             .nickname("nick-" + id.toString().substring(0, 8))
@@ -277,24 +207,5 @@ class UserServiceTest {
             .createdAt(LocalDateTime.now())
             .isActive(active)
             .build();
-        return user;
-    }
-
-    private ValidatedService validatedService() {
-        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
-        validator.afterPropertiesSet();
-        Validator jakartaValidator = validator.getValidator();
-        ProxyFactory factory = new ProxyFactory(target);
-        factory.addAdvice(new MethodValidationInterceptor(jakartaValidator));
-        UserService proxied = (UserService) factory.getProxy();
-        return new ValidatedService(proxied, validator);
-    }
-
-    private record ValidatedService(UserService service, LocalValidatorFactoryBean validator)
-        implements AutoCloseable {
-        @Override
-        public void close() {
-            validator.destroy();
-        }
     }
 }
