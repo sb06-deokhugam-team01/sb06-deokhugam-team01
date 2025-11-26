@@ -1,8 +1,10 @@
 package com.sprint.sb06deokhugamteam01.repository;
 
-import com.sprint.sb06deokhugamteam01.domain.ReviewLog;
+import com.sprint.sb06deokhugamteam01.domain.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ReviewRepository extends JpaRepository<ReviewLog, String> {
+import java.util.UUID;
+
+public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
 }
