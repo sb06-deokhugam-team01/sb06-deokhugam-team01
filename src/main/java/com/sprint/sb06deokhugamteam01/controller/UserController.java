@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Size;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +34,7 @@ public class UserController {
         log.info("Received user registration request: {}", userRegisterRequest);
         UserDto userDto = UserDto.from(userService.createUser(userRegisterRequest));
         log.info("User registered successfully: {}", userDto);
-        return ResponseEntity.ok(userDto);
+        return new ResponseEntity<>(userDto, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
@@ -57,7 +58,7 @@ public class UserController {
         log.info("Received user delete request: {}", userId);
         UserDto userDto = UserDto.from(userService.deleteUser(userId));
         log.info("User deleted successfully: {}", userDto);
-        return ResponseEntity.ok(userDto);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{userId}")
