@@ -1,14 +1,13 @@
 package com.sprint.sb06deokhugamteam01.service.book;
 
 import com.sprint.sb06deokhugamteam01.domain.Book;
-import com.sprint.sb06deokhugamteam01.dto.book.request.BookCreateRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.BookDto;
+import com.sprint.sb06deokhugamteam01.dto.book.request.BookCreateRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.request.BookUpdateRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.request.PagingBookRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.response.CursorPageResponseBookDto;
 import com.sprint.sb06deokhugamteam01.exception.book.AlReadyExistsIsbnException;
 import com.sprint.sb06deokhugamteam01.exception.book.NoSuchBookException;
-import com.sprint.sb06deokhugamteam01.mapper.book.BookMapper;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -25,7 +24,6 @@ import java.util.UUID;
 public class BookServiceImpl implements  BookService {
 
     private final BookRepository bookRepository;
-    private final BookMapper bookMapper;
 
     @Override
     public BookDto getBookById(UUID id) {
