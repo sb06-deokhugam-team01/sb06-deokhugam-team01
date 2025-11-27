@@ -1,0 +1,267 @@
+package com.sprint.sb06deokhugamteam01.controller;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sprint.sb06deokhugamteam01.dto.book.BookDto;
+import com.sprint.sb06deokhugamteam01.dto.book.request.BookCreateRequest;
+import com.sprint.sb06deokhugamteam01.dto.book.request.PagingBookRequest;
+import com.sprint.sb06deokhugamteam01.dto.book.response.BookInfo;
+import com.sprint.sb06deokhugamteam01.dto.book.response.CursorPageResponseBookDto;
+import com.sprint.sb06deokhugamteam01.exception.book.NoSuchBookException;
+import com.sprint.sb06deokhugamteam01.service.book.BookService;
+import org.jeasy.random.EasyRandom;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDate;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(BookController.class)
+class BookControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @MockitoBean
+    private BookService bookService;
+
+    @BeforeEach
+    void setUp() {
+
+        EasyRandom easyRandom = new EasyRandom();
+
+
+
+    }
+
+    @Test
+    @DisplayName("getBooksByCursor 성공 테스트")
+    void getBooksByCursor_Success() throws Exception {
+
+        //given
+        EasyRandom easyRandom = new EasyRandom();
+        PagingBookRequest request = easyRandom.nextObject(PagingBookRequest.class);
+        CursorPageResponseBookDto response = easyRandom.nextObject(CursorPageResponseBookDto.class);
+
+        //when
+        when(bookService.getBooksByPage(any(PagingBookRequest.class)))
+                .thenReturn(response);
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.get("/books")
+                .param("keyword", request.keyword())
+                .param("orderBy", request.orderBy())
+                .param("direction", request.direction())
+                .param("cursor", request.cursor())
+                .param("after", String.valueOf(request.after()))
+                .param("limit", String.valueOf(request.limit()))
+                )
+            .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.nextCursor").value(response.getNextCursor()))
+                .andExpect(jsonPath("$.nextAfter").value(response.getNextAfter()))
+                .andExpect(jsonPath("$.size").value(response.getSize()))
+                .andExpect(jsonPath("$.totalElements").value(response.getTotalElements()));
+
+    }
+
+    @Test
+    @DisplayName("getBooksByCursor 실패 테스트 - 잘못된 파라미터")
+    void getBooksByCursor_Fail_InvalidParameters() throws Exception {
+
+        //given
+        String invalidLimit = "-5"; // 음수 값은 잘못된 파라미터
+        EasyRandom easyRandom = new EasyRandom();
+        PagingBookRequest request = easyRandom.nextObject(PagingBookRequest.class);
+
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/books")
+                .param("keyword", request.keyword())
+                .param("orderBy", request.orderBy())
+                .param("direction", request.direction())
+                .param("cursor", request.cursor())
+                .param("after", String.valueOf(request.after()))
+                .param("limit", String.valueOf(invalidLimit))
+                )
+            .andExpect(status().isBadRequest());
+
+
+    }
+
+    @Test
+    @DisplayName("createBook 성공 테스트")
+    void createBook_Success() throws Exception {
+
+        //given
+        EasyRandom easyRandom = new EasyRandom();
+        BookCreateRequest bookCreateRequest = easyRandom.nextObject(BookCreateRequest.class);
+        BookDto bookDto = easyRandom.nextObject(BookDto.class);
+        MultipartFile thumbnailImage = null;
+
+        //when
+        when(bookService.createBook(any(BookCreateRequest.class), any(MultipartFile.class)))
+            .thenReturn(bookDto);
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/books/")
+                .param("bookData", objectMapper.writeValueAsString(bookCreateRequest))
+                .param("thumbnailImage", String.valueOf(thumbnailImage))
+        )
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").value(bookDto.id().toString()))
+            .andExpect(jsonPath("$.title").value(bookDto.title()))
+            .andExpect(jsonPath("$.author").value(bookDto.author()))
+            .andExpect(jsonPath("$.isbn").value(bookDto.isbn()));
+
+    }
+
+    @Test
+    @DisplayName("createBook 실패 테스트 - 잘못된 입력 데이터")
+    void createBook_Fail_InvalidInputData() throws Exception {
+
+        //given
+        BookCreateRequest invalidRequest = BookCreateRequest.builder()
+            .title("") // 빈 제목은 잘못된 입력 데이터
+            .author("Author Name")
+                .description("Description")
+                .publisher("Publisher")
+                .publishedDate(LocalDate.EPOCH)
+            .isbn("1234567890")
+                .build();
+
+        MultipartFile thumbnailImage = null;
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/books/")
+                .param("bookData", objectMapper.writeValueAsString(invalidRequest))
+                .param("thumbnailImage", String.valueOf(thumbnailImage))
+        )
+            .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    @DisplayName("getBookById 성공 테스트")
+    void getBookById_Success() throws Exception {
+
+        //given
+        EasyRandom easyRandom = new EasyRandom();
+        BookDto bookDto = easyRandom.nextObject(BookDto.class);
+
+        //when
+        when(bookService.getBookById(bookDto.id()))
+            .thenReturn(bookDto);
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/books/{bookId}", bookDto.id()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(bookDto.id().toString()))
+            .andExpect(jsonPath("$.title").value(bookDto.title()))
+            .andExpect(jsonPath("$.author").value(bookDto.author()))
+            .andExpect(jsonPath("$.isbn").value(bookDto.isbn()));
+
+    }
+
+    @Test
+    @DisplayName("getBookById 실패 테스트 - 존재하지 않는 도서")
+    void getBookById_Fail_NoSuchBook() throws Exception {
+
+        //given
+        EasyRandom easyRandom = new EasyRandom();
+        BookDto bookDto = easyRandom.nextObject(BookDto.class);
+
+        //when
+        when(bookService.getBookById(bookDto.id()))
+            .thenThrow(NoSuchBookException.class);
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/books/{bookId}", bookDto.id()))
+            .andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    @DisplayName("deleteBookById 성공 테스트")
+    void deleteBookById_Success() throws Exception {
+
+        //given
+        String bookId = UUID.randomUUID().toString();
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/books/{bookId}", bookId))
+            .andExpect(status().isNoContent());
+
+    }
+
+    @Test
+    @DisplayName("getBookByIsbn 성공 테스트")
+    void getBookByIsbn_Success() throws Exception {
+
+        //given
+        EasyRandom easyRandom = new EasyRandom();
+        BookDto bookDto = easyRandom.nextObject(BookDto.class);
+        BookInfo bookInfo = easyRandom.nextObject(BookInfo.class);
+
+        //when
+        when(bookService.getBookByIsbn(bookDto.isbn()))
+            .thenReturn(bookDto);
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/books/info")
+                .param("isbn", bookDto.isbn()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.isbn").value(bookInfo.isbn()))
+            .andExpect(jsonPath("$.title").value(bookInfo.title()))
+            .andExpect(jsonPath("$.author").value(bookInfo.author()));
+
+    }
+
+    @Test
+    @DisplayName("getBookByIsbn 실패 테스트 - 존재하지 않는 도서")
+    void getBookByIsbn_Fail_NoSuchBook() throws Exception {
+
+        //given
+        EasyRandom easyRandom = new EasyRandom();
+        BookDto bookDto = easyRandom.nextObject(BookDto.class);
+
+        //when
+        when(bookService.getBookByIsbn(bookDto.isbn()))
+            .thenThrow(NoSuchBookException.class);
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/books/info")
+                .param("isbn", bookDto.isbn()))
+            .andExpect(status().isNotFound());
+
+    }
+
+    @Test
+    @DisplayName("hardDeleteBookById 성공 테스트")
+    void hardDeleteBookById_Success() throws Exception {
+
+        //given
+        String bookId = UUID.randomUUID().toString();
+
+        //then
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/books/{bookId}/hard", bookId))
+            .andExpect(status().isNoContent());
+
+    }
+
+
+}
