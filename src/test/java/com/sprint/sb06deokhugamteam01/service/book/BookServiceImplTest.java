@@ -102,7 +102,7 @@ class BookServiceImplTest {
                 .thenReturn(Optional.empty());
 
         //when
-        RootException e = assertThrows(NoSuchBookException.class, () -> {
+        NoSuchBookException e = assertThrows(NoSuchBookException.class, () -> {
             bookService.getBookById(bookId);
         });
 
