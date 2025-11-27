@@ -1,15 +1,11 @@
 package com.sprint.sb06deokhugamteam01.dto.User.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserLoginRequest {
-
-    private String email;
-    private String password;
+public record UserLoginRequest(
+    @Email @NotBlank String email,
+    @NotBlank String password
+) {
 
 }

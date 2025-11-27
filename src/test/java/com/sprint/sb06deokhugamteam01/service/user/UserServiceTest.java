@@ -8,9 +8,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.sprint.sb06deokhugamteam01.domain.User;
+import com.sprint.sb06deokhugamteam01.dto.User.request.UserRegisterRequest;
 import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.UserRepository;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import org.jeasy.random.EasyRandom;
@@ -30,7 +32,7 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @InjectMocks
-    private UserServiceImpl userService;
+    private UserServiceImpl target;
 
     private Answer<User> returnFirstArgument;
     private EasyRandom easyRandom;
@@ -45,18 +47,17 @@ class UserServiceTest {
 
     @Test
     void registerUser_shouldPersistNewActiveUser() {
-        // given
-        String email = easyRandom.nextObject(String.class);
-        String nickname = easyRandom.nextObject(String.class);
-        String password = easyRandom.nextObject(String.class);
+        String email = "user@example.com";
+        String password = "password123";
+        String nickname = "tester";
+
+        UserRegisterRequest request = new UserRegisterRequest(email, password, nickname);
 
         when(userRepository.existsByEmail(email)).thenReturn(false);
         when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
 
-        // when
-        User result = userService.createUser(email, nickname, password);
+        User result = target.createUser(request);
 
-        // then
         assertThat(result.getEmail()).isEqualTo(email);
         assertThat(result.getNickname()).isEqualTo(nickname);
         assertThat(result.isActive()).isTrue();
@@ -67,11 +68,12 @@ class UserServiceTest {
 
     @Test
     void registerUser_whenEmailAlreadyExists_shouldThrowInvalidUserException() {
-        String email = easyRandom.nextObject(String.class);
+        String email = "duplicate@example.com";
 
         when(userRepository.existsByEmail(email)).thenReturn(true);
+        UserRegisterRequest request = new UserRegisterRequest(email, "password123", "tester");
 
-        assertThatThrownBy(() -> userService.createUser(email, "tester", "pw"))
+        assertThatThrownBy(() -> target.createUser(request))
             .isInstanceOf(InvalidUserException.class);
     }
 
@@ -83,7 +85,7 @@ class UserServiceTest {
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
-        User result = userService.login(email, password);
+        User result = target.login(email, password);
 
         assertThat(result).isEqualTo(user);
     }
@@ -95,7 +97,7 @@ class UserServiceTest {
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
-        assertThatThrownBy(() -> userService.login(email, "wrong"))
+        assertThatThrownBy(() -> target.login(email, "wrong"))
             .isInstanceOf(InvalidUserException.class);
     }
 
@@ -106,7 +108,7 @@ class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        User result = userService.getUser(userId);
+        User result = target.getUser(userId);
 
         assertThat(result).isEqualTo(user);
     }
@@ -118,7 +120,7 @@ class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        assertThatThrownBy(() -> userService.getUser(userId))
+        assertThatThrownBy(() -> target.getUser(userId))
             .isInstanceOf(InvalidUserException.class);
     }
 
@@ -130,22 +132,22 @@ class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
 
-        User result = userService.deactivateUser(userId);
+        User result = target.deactivateUser(userId);
 
         assertThat(result.isActive()).isFalse();
         verify(userRepository).save(user);
     }
 
     @Test
-    void updateUser_shouldUpdateNicknameAndPassword() {
+    void updateUser_shouldUpdateNicknameOnly() {
         User user = randomUser(true);
         UUID userId = user.getId();
-        String newNickname = easyRandom.nextObject(String.class);
+        String newNickname = "renamedUser";
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
 
-        User result = userService.updateUser(userId, newNickname);
+        User result = target.updateUser(userId, newNickname);
 
         assertThat(result.getNickname()).isEqualTo(newNickname);
         verify(userRepository).save(user);
@@ -158,7 +160,7 @@ class UserServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        userService.deleteUser(userId);
+        target.hardDeleteUser(userId);
 
         verify(userRepository, times(1)).delete(user);
     }
@@ -168,17 +170,42 @@ class UserServiceTest {
         UUID userId = easyRandom.nextObject(UUID.class);
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.deleteUser(userId))
+        assertThatThrownBy(() -> target.deleteUser(userId))
             .isInstanceOf(UserNotFoundException.class);
     }
 
+    @Test
+    void deleteUser_shouldSoftDeleteAndSchedulePurge() {
+        User user = randomUser(true);
+        UUID userId = user.getId();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
+
+        User result = target.deleteUser(userId);
+
+        assertThat(result.isActive()).isFalse();
+        assertThat(result.getDeletedAt()).isNotNull();
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void purgeDeletedUsersBefore_shouldDelegateToRepository() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(1);
+
+        target.purgeDeletedUsersBefore(cutoff);
+
+        verify(userRepository).deleteAllSoftDeletedBefore(cutoff);
+    }
+
     private User randomUser(boolean active) {
-        User user = easyRandom.nextObject(User.class);
-        if (active) {
-            user.activate();
-        } else {
-            user.deactivate();
-        }
-        return user;
+        UUID id = easyRandom.nextObject(UUID.class);
+        return User.builder()
+            .id(id)
+            .email("user-" + id + "@example.com")
+            .nickname("nick-" + id.toString().substring(0, 8))
+            .password("password123")
+            .createdAt(LocalDateTime.now())
+            .isActive(active)
+            .build();
     }
 }
