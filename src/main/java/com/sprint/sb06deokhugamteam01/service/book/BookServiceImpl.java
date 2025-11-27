@@ -56,13 +56,14 @@ public class BookServiceImpl implements  BookService {
                         .map(BookDto::fromEntity)
                         .limit(bookSlice.getContent().size() - (bookSlice.hasNext() ? 1 : 0))
                         .toList())
-                .nextCursor(bookSlice.hasNext() ?
-                        switch (pagingBookRequest.orderBy()) {
-                            case TITLE -> bookSlice.getContent().get(bookSlice.getContent().size() -1).getTitle();
-                            case PUBLISHED_DATE -> bookSlice.getContent().get(bookSlice.getContent().size() -1).getPublishedDate().toString();
-                            case RATING -> String.valueOf(bookSlice.getContent().get(bookSlice.getContent().size() -1).getRating());
-                            case REVIEW_COUNT -> String.valueOf(bookSlice.getContent().get(bookSlice.getContent().size() -1).getReviewCount());
-                        } : null)
+                .nextCursor(bookSlice.getContent().stream()
+                        .reduce((first, second) -> second)
+                        .map(book -> switch (pagingBookRequest.orderBy()) {
+                            case TITLE -> book.getTitle();
+                            case PUBLISHED_DATE -> book.getPublishedDate().toString();
+                            case RATING -> String.valueOf(book.getRating());
+                            case REVIEW_COUNT -> String.valueOf(book.getReviewCount());
+                        }).orElse(null))
                 .nextAfter(bookSlice.hasNext() ?
                         bookSlice.getContent().get(bookSlice.getContent().size() -1).getCreatedAt().toString() : null)
                 .size(pagingBookRequest.limit())

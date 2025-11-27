@@ -6,6 +6,7 @@ import com.sprint.sb06deokhugamteam01.domain.Book;
 import com.sprint.sb06deokhugamteam01.domain.QBook;
 import com.sprint.sb06deokhugamteam01.dto.book.request.PagingBookRequest;
 import io.github.openfeign.querydsl.jpa.spring.repository.QuerydslJpaRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
@@ -30,7 +31,11 @@ public interface BookQRepository extends QuerydslJpaRepository<Book, UUID> {
                 .limit(pagingBookRequest.limit() + 1)
                 .fetch();
 
-        return new SliceImpl<>(bookList);
+        return new SliceImpl<>(
+                bookList,
+                Pageable.ofSize(bookList.size()-1),
+                bookList.size() > pagingBookRequest.limit()
+        );
 
     }
 
