@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.nCopies;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -140,7 +141,7 @@ class BookServiceImplTest {
                 .thenReturn(Optional.empty());
 
         //when
-        RootException exception = assertThrows(NoSuchBookException.class, () -> {
+        NoSuchBookException exception = assertThrows(NoSuchBookException.class, () -> {
             bookService.getBookByIsbn(isbn);
         });
 
@@ -167,7 +168,7 @@ class BookServiceImplTest {
                 .thenReturn(100L);
 
         when(bookQRepository.findBooksByKeyword(pagingBookRequest))
-                .thenReturn(new SliceImpl<>(java.util.Collections.nCopies(11, book)));
+                .thenReturn(new SliceImpl<>(nCopies(11, book)));
 
         //when
         CursorPageResponseBookDto result = bookService.getBooksByPage(pagingBookRequest);
@@ -230,7 +231,7 @@ class BookServiceImplTest {
                 .thenReturn(true);
 
         //when
-        RootException exception = assertThrows(AlReadyExistsIsbnException.class, () -> {
+        AlReadyExistsIsbnException exception = assertThrows(AlReadyExistsIsbnException.class, () -> {
             bookService.createBook(bookCreateRequest, null);
         });
 
@@ -362,7 +363,7 @@ class BookServiceImplTest {
                 .thenReturn(Optional.empty());
 
         //when
-        RootException exception = assertThrows(NoSuchBookException.class, () -> {
+        NoSuchBookException exception = assertThrows(NoSuchBookException.class, () -> {
             bookService.updateBook(bookDto.id(), updateRequest, null);
         });
 
@@ -395,7 +396,7 @@ class BookServiceImplTest {
         UUID bookId = bookDto.id();
 
         //when
-        RootException exception = assertThrows(NoSuchBookException.class, () -> {
+        NoSuchBookException exception = assertThrows(NoSuchBookException.class, () -> {
             bookService.deleteBookById(bookId);
         });
 
@@ -434,7 +435,7 @@ class BookServiceImplTest {
         UUID bookId = bookDto.id();
 
         //when
-        RootException exception = assertThrows(NoSuchBookException.class, () -> {
+        NoSuchBookException exception = assertThrows(NoSuchBookException.class, () -> {
             bookService.hardDeleteBookById(bookId);
         });
 
