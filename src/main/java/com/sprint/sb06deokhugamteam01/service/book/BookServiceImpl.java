@@ -44,6 +44,7 @@ public class BookServiceImpl implements  BookService {
                 .orElseThrow(() -> new NoSuchBookException(detailMap("isbn", isbn))));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public CursorPageResponseBookDto getBooksByPage(PagingBookRequest pagingBookRequest) {
 
