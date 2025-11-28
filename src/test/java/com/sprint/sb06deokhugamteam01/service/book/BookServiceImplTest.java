@@ -235,6 +235,7 @@ class BookServiceImplTest {
 
     }
 
+    //외부 api 테스트이므로 현재는 실패
     @Test
     @DisplayName("createBook 실패 테스트 - 잘못된 ISBN")
     void createBook_Fail_InvalidIsbn() {
@@ -259,6 +260,7 @@ class BookServiceImplTest {
 
     }
 
+    //외부 api 테스트이므로 현재는 실패
     @Test
     @DisplayName("createBook 실패 테스트 - 도서 정보 조회 불가")
     void createBook_Fail_CannotFetchBookInfo() {
@@ -283,6 +285,7 @@ class BookServiceImplTest {
 
     }
 
+    //외부 api 테스트이므로 현재는 실패
     @Test
     @DisplayName("createBook 실패 테스트 - S3 업로드 오류")
     void createBook_Fail_S3UploadError() {
@@ -375,6 +378,8 @@ class BookServiceImplTest {
         UUID bookId = bookDto.id();
 
         //when
+        when(bookRepository.findById(bookId))
+                .thenReturn(Optional.of(book));
 
         //then
         assertDoesNotThrow(() -> {
