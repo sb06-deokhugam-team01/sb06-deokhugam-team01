@@ -7,12 +7,20 @@ import java.time.LocalDateTime;
 @Builder
 public record CursorPagePopularReviewRequest(
         RankCriteria period,
-        String direction,
+        SortDirection direction,
         String cursor,
         LocalDateTime after, // 보조 커서
-        int limit
+        Integer limit
 ) {
     public enum RankCriteria {
-        DAILY, WEEKLY, MONTHLY, ALL_TIME
+        DAILY,
+        WEEKLY,
+        MONTHLY,
+        ALL_TIME
+    }
+
+    public enum SortDirection {
+        ASC,
+        DESC
     }
 }

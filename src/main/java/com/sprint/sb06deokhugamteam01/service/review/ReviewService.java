@@ -10,9 +10,10 @@ public interface ReviewService {
 
     ReviewDto getReview(ReviewOperationRequest request, UUID requestUserId);
 
-    CursorPageResponseReviewDto getReviews(CursorPageReviewRequest request);
+    CursorPageResponseReviewDto getReviews(CursorPageReviewRequest request, UUID requestUserId);
 
-    CursorPageResponsePopularReviewDto getPopularReviews(CursorPagePopularReviewRequest request);
+    CursorPageResponsePopularReviewDto getPopularReviews(CursorPagePopularReviewRequest request,
+                                                         UUID requestUserId);
 
     ReviewDto updateReview(ReviewOperationRequest request,
                            ReviewUpdateRequest updateRequest,

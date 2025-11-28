@@ -9,17 +9,16 @@ import java.util.UUID;
 public record CursorPageReviewRequest(
         UUID userId, // 작성자 ID
         UUID bookId,
-        String keyword,
-        SortOrder orderBy,
+        String keyword, // 작성자 닉네임 | 내용
+        SortField orderBy,
         SortDirection direction,
         String cursor,
         LocalDateTime after,
-        int limit,
-        UUID requestUserId // 요청자 ID
+        Integer limit
 ) {
 
     // Swagger 이름에 따라 카멜케이스로 작성
-    public enum SortOrder {
+    public enum SortField {
         createdAt,
         rating
     }

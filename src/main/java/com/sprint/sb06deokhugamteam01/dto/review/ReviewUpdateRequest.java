@@ -5,6 +5,6 @@ import lombok.Builder;
 @Builder
 public record ReviewUpdateRequest(
         String content,
-        int rating
+        Integer rating
 ) {
 }

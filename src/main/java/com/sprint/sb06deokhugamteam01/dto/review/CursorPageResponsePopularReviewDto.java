@@ -7,7 +7,7 @@ import java.util.List;
 
 @Builder
 public record CursorPageResponsePopularReviewDto (
-        List<Object> content,
+        List<ReviewDto> content,
         String nextCursor,
         LocalDateTime nextAfter,
         int size,

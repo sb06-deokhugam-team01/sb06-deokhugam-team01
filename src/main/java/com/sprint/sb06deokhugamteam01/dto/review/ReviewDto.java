@@ -1,7 +1,7 @@
 package com.sprint.sb06deokhugamteam01.dto.review;
 
 import com.sprint.sb06deokhugamteam01.domain.Book;
-import com.sprint.sb06deokhugamteam01.domain.Review;
+import com.sprint.sb06deokhugamteam01.domain.review.Review;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import lombok.Builder;
 
@@ -43,8 +43,7 @@ public record ReviewDto (
                 .likeCount(review.getLikeCount())
                 .commentCount(review.getCommentCount())
 
-                // '좋아요' 여부 필드: 현재 Review 엔티티에 없으므로, 기본값 false 설정
-                .likedByMe(false)
+                .likedByMe(false) // TODO 인자로 requestUserId 받아서 처리 필요
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
                 .build();

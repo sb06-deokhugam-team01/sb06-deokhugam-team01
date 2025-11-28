@@ -1,7 +1,7 @@
 package com.sprint.sb06deokhugamteam01.service.book;
 
 import com.sprint.sb06deokhugamteam01.domain.Book;
-import com.sprint.sb06deokhugamteam01.domain.Review;
+import com.sprint.sb06deokhugamteam01.domain.review.Review;
 import com.sprint.sb06deokhugamteam01.dto.book.BookDto;
 import com.sprint.sb06deokhugamteam01.dto.book.request.BookCreateRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.request.BookUpdateRequest;
@@ -11,7 +11,7 @@ import com.sprint.sb06deokhugamteam01.exception.book.AlreadyExistsIsbnException;
 import com.sprint.sb06deokhugamteam01.exception.book.NoSuchBookException;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
-import com.sprint.sb06deokhugamteam01.repository.ReviewRepository;
+import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Slice;

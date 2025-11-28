@@ -9,7 +9,7 @@ import com.sprint.sb06deokhugamteam01.dto.book.response.CursorPageResponseBookDt
 import com.sprint.sb06deokhugamteam01.exception.book.*;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
-import com.sprint.sb06deokhugamteam01.repository.ReviewRepository;
+import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
