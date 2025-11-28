@@ -12,4 +12,5 @@ public interface CommentRepository extends JpaRepository<Comment, String> {
 
     void deleteByReviewIn(List<Review> reviewList);
 
+    void deleteAllByReview(Review review);
 }

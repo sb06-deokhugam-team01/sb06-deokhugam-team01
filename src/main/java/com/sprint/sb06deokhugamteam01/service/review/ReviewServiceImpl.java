@@ -6,7 +6,13 @@ import com.sprint.sb06deokhugamteam01.domain.review.Review;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.dto.review.*;
+import com.sprint.sb06deokhugamteam01.exception.book.NoSuchBookException;
+import com.sprint.sb06deokhugamteam01.exception.review.ReviewAlreadyExistsException;
+import com.sprint.sb06deokhugamteam01.exception.review.ReviewNotFoundException;
+import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
+import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
+import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import com.sprint.sb06deokhugamteam01.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +23,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @Service
 @RequiredArgsConstructor
@@ -27,18 +37,27 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final CommentRepository commentRepository;
 
     @Override
     @Transactional
     public ReviewDto createReview(ReviewCreateRequest request) {
 
-        User user = userRepository.findById(request.userId()) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 사용자가 존재하지 않습니다."));
+        UUID userId = request.userId();
 
-        Book book = bookRepository.findById(request.bookId()) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 도서가 존재하지 않습니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(detailMap("userId", userId)));
 
-        // TODO 사용자는 한 도서에 대해 하나의 리뷰만 남길수 있도록 검증 필요
+        Book book = bookRepository.findById(request.bookId())
+                .orElseThrow(() -> new NoSuchBookException(detailMap("bookId", request.bookId())));
+
+        // 누가 어떤 책에 대해 이미 리뷰를 쓴건지 정보를 담음
+        if (reviewRepository.existsByUserAndBook(user, book)) {
+            Map<String, Object> details = new HashMap<>();
+            details.put("userId", user.getId());
+            details.put("bookId", book.getId());
+            throw new ReviewAlreadyExistsException(details);
+        }
 
         Review review = Review.builder()
                 .rating(request.rating())
@@ -58,11 +77,13 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public ReviewDto getReview(ReviewOperationRequest request, UUID requestUserId) {
-        userRepository.findById(requestUserId) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 사용자가 존재하지 않습니다."));
 
-        Review review = reviewRepository.findById(request.reviewId()) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 리뷰가 존재하지 않습니다."));
+        userRepository.findById(requestUserId)
+                .orElseThrow(() -> new UserNotFoundException(detailMap("userId", requestUserId)));
+
+        UUID reviewId = request.reviewId();
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException(detailMap("reviewId", reviewId)));
 
         return ReviewDto.from(review);
     }
@@ -197,13 +218,17 @@ public class ReviewServiceImpl implements ReviewService {
                                   ReviewUpdateRequest updateRequest,
                                   UUID requestUserId
     ) {
-        User user = userRepository.findById(requestUserId) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 사용자가 존재하지 않습니다."));
+        User user = userRepository.findById(requestUserId)
+                .orElseThrow(() -> new UserNotFoundException(detailMap("userId", requestUserId)));
 
-        Review review = reviewRepository.findById(request.reviewId()) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 리뷰가 존재하지 않습니다."));
+        UUID reviewId = request.reviewId();
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException(detailMap("reviewId", reviewId)));
 
-        // TODO 작성자 == 요청자 인지 검증 필요
+        // 작성자 == 요청자인지 검증
+        if (!review.getUser().getId().equals(user.getId())) {
+            throw new InvalidUserException(detailMap("userId", requestUserId));
+        }
 
         if (updateRequest.content() != null) {
             review.updateContent(updateRequest.content());
@@ -219,11 +244,13 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void deleteReview(ReviewOperationRequest request, UUID requestUserId) {
-        userRepository.findById(requestUserId) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 사용자가 존재하지 않습니다."));
 
-        Review review = reviewRepository.findById(request.reviewId()) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 리뷰가 존재하지 않습니다."));
+        userRepository.findById(requestUserId)
+                .orElseThrow(() -> new UserNotFoundException(detailMap("userId", requestUserId)));
+
+        UUID reviewId = request.reviewId();
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException(detailMap("reviewId", reviewId)));
 
         review.softDelete();
         reviewRepository.save(review);
@@ -232,24 +259,30 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public void hardDeleteReview(ReviewOperationRequest request, UUID requestUserId) {
-        userRepository.findById(requestUserId) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 사용자가 존재하지 않습니다."));
 
-        Review review = reviewRepository.findById(request.reviewId()) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 리뷰가 존재하지 않습니다."));
+        userRepository.findById(requestUserId)
+                .orElseThrow(() -> new UserNotFoundException(detailMap("userId", requestUserId)));
+
+        UUID reviewId = request.reviewId();
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException(detailMap("reviewId", reviewId)));
 
         reviewRepository.delete(review);
+        // 연관관계 매핑된 좋아요, 댓글, 활동점수 영구 삭제
+        // TODO 좋아요를 DB에 저장해야 하지 않나?
+        commentRepository.deleteAllByReview(review);
     }
 
     @Override
     @Transactional
     public ReviewLikeDto likeReview(ReviewOperationRequest request, UUID requestUserId) {
 
-        userRepository.findById(requestUserId) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 사용자가 존재하지 않습니다."));
+        userRepository.findById(requestUserId)
+                .orElseThrow(() -> new UserNotFoundException(detailMap("userId", requestUserId)));
 
-        Review review = reviewRepository.findById(request.reviewId()) // TODO 커스텀 예외로 대체
-                .orElseThrow(() -> new IllegalArgumentException("해당 정보를 가진 리뷰가 존재하지 않습니다."));
+        UUID reviewId = request.reviewId();
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException(detailMap("reviewId", reviewId)));
 
         // TODO 유저-좋아요 정보 저장 필요
         review.increaseLikeCount();
@@ -261,5 +294,11 @@ public class ReviewServiceImpl implements ReviewService {
                 .liked(true)
                 .build();
 
+    }
+
+    private Map<String, Object> detailMap(String key, Object value) {
+        Map<String, Object> details = new HashMap<>();
+        details.put(key, value);
+        return details;
     }
 }

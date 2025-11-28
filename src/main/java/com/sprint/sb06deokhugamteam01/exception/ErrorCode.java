@@ -16,6 +16,7 @@ public enum ErrorCode {
     REVIEW_NOT_FOUND("Review not found", 404, "R001"),
     COMMENT_NOT_FOUND("Comment not found", 404, "C001"),
     BOOK_NOT_FOUND("Book not found", 404, "B001"),
+    REVIEW_ALREADY_EXISTS("Review already exists", 409, "R002"),
     INVALID_REQUEST("Invalid request", 400, "COM001"),
     INTERNAL_SERVER_ERROR("Internal server error", 500, "COM002");
 
