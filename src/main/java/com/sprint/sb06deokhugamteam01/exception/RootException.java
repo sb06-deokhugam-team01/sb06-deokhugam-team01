@@ -1,6 +1,7 @@
 package com.sprint.sb06deokhugamteam01.exception;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 public class RootException extends RuntimeException {
@@ -16,4 +17,14 @@ public class RootException extends RuntimeException {
         this.details = details;
     }
 
+    public RootException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.timestamp = LocalDateTime.now();
+        this.errorCode = errorCode;
+        this.details = new HashMap<>();
+    }
+
+    public void addDetail(String key, Object value) {
+        this.details.put(key, value);
+    }
 }
