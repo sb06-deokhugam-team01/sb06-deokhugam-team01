@@ -1,10 +1,14 @@
 package com.sprint.sb06deokhugamteam01.service.notification;
 
 import com.sprint.sb06deokhugamteam01.domain.Notification;
+import com.sprint.sb06deokhugamteam01.exception.notification.NotificationNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.NotificationRepository;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -13,22 +17,35 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
 
     @Override
-    public Notification createNotification(String content) {
-        return null;
+    @Transactional
+    public Notification updateNotification(UUID notificationId, String newContent,
+        boolean confirmed) {
+        Notification optionalNotification = notificationRepository.findById(notificationId)
+            .orElseThrow(() -> new NotificationNotFoundException(Map.of("notificationId", notificationId)));
+
+        optionalNotification.confirm();
+
+        return optionalNotification;
     }
 
     @Override
-    public Notification updateNotification(String notificationId, String newContent, boolean confirmed) {
-        return null;
+    @Transactional
+    public Notification deleteNotification(UUID notificationId) {
+        Notification notification = notificationRepository.findById(notificationId)
+            .orElseThrow(() -> new NotificationNotFoundException(Map.of("notificationId", notificationId)));
+        notificationRepository.delete(notification);
+        return notification;
     }
 
     @Override
-    public Notification deleteNotification(String notificationId) {
-        return null;
+    public List<Notification> getNotifications(UUID userId) {
+        return notificationRepository.findAllByUserIdAndConfirmedFalse(userId);
     }
 
     @Override
-    public List<Notification> getNotifications() {
-        return null;
+    public List<Notification> updateAll(UUID userId) {
+        List<Notification> notifications = notificationRepository.findAllByUserIdAndConfirmedFalse(userId);
+        notifications.forEach(Notification::confirm);
+        return notificationRepository.saveAll(notifications);
     }
 }

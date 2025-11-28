@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.dto.User.request.UserRegisterRequest;
+import com.sprint.sb06deokhugamteam01.exception.common.UnauthorizedAccessException;
 import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.UserRepository;
@@ -128,14 +129,27 @@ class UserServiceTest {
     void deactivateUser_shouldMarkUserAsInactive() {
         User user = randomUser(true);
         UUID userId = user.getId();
+        UUID currentUserId = userId;
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
 
-        User result = target.deactivateUser(userId);
+        User result = target.deactivateUser(userId, currentUserId);
 
         assertThat(result.isActive()).isFalse();
         verify(userRepository).save(user);
+    }
+
+    @Test
+    void deactivateUser_whenCurrentUserDiffers_shouldThrowUnauthorizedAccess() {
+        User user = randomUser(true);
+        UUID userId = user.getId();
+        UUID otherUserId = UUID.randomUUID();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> target.deactivateUser(userId, otherUserId))
+            .isInstanceOf(UnauthorizedAccessException.class);
     }
 
     @Test
@@ -143,14 +157,27 @@ class UserServiceTest {
         User user = randomUser(true);
         UUID userId = user.getId();
         String newNickname = "renamedUser";
+        UUID currentUserId = userId;
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
 
-        User result = target.updateUser(userId, newNickname);
+        User result = target.updateUser(userId, newNickname, currentUserId);
 
         assertThat(result.getNickname()).isEqualTo(newNickname);
         verify(userRepository).save(user);
+    }
+
+    @Test
+    void updateUser_whenCurrentUserDiffers_shouldThrowUnauthorizedAccess() {
+        User user = randomUser(true);
+        UUID userId = user.getId();
+        UUID currentUserId = UUID.randomUUID();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> target.updateUser(userId, "nick", currentUserId))
+            .isInstanceOf(UnauthorizedAccessException.class);
     }
 
     @Test
@@ -170,8 +197,20 @@ class UserServiceTest {
         UUID userId = easyRandom.nextObject(UUID.class);
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> target.deleteUser(userId))
+        assertThatThrownBy(() -> target.deleteUser(userId, userId))
             .isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    void deleteUser_whenCurrentUserDiffers_shouldThrowUnauthorizedAccess() {
+        User user = randomUser(true);
+        UUID userId = user.getId();
+        UUID currentUserId = UUID.randomUUID();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> target.deleteUser(userId, currentUserId))
+            .isInstanceOf(UnauthorizedAccessException.class);
     }
 
     @Test
@@ -181,7 +220,7 @@ class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
 
-        User result = target.deleteUser(userId);
+        User result = target.deleteUser(userId, userId);
 
         assertThat(result.isActive()).isFalse();
         assertThat(result.getDeletedAt()).isNotNull();

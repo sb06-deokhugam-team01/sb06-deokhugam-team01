@@ -2,14 +2,15 @@ package com.sprint.sb06deokhugamteam01.service.notification;
 
 import com.sprint.sb06deokhugamteam01.domain.Notification;
 import java.util.List;
+import java.util.UUID;
 
 public interface NotificationService {
 
-    Notification createNotification(String content);
+    Notification updateNotification(UUID notificationId, String newContent, boolean confirmed);
 
-    Notification updateNotification(String notificationId, String newContent, boolean confirmed);
+    Notification deleteNotification(UUID notificationId);
 
-    Notification deleteNotification(String notificationId);
+    List<Notification> getNotifications(UUID userId);
 
-    List<Notification> getNotifications();
+    List<Notification> updateAll(UUID userId);
 }

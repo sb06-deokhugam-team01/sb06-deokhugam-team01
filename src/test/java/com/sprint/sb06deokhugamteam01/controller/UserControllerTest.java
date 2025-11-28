@@ -131,7 +131,7 @@ class UserControllerTest {
         String nickname = "nickname";
         User updated = sampleUser(userId, "user@example.com", nickname, "password123");
 
-        when(userService.updateUser(eq(userId), any())).thenReturn(updated);
+        when(userService.updateUser(eq(userId), any(), eq(userId))).thenReturn(updated);
 
         mockMvc.perform(patch("/api/users/{userId}", userId)
                 .contentType(MediaType.TEXT_PLAIN)
@@ -140,7 +140,26 @@ class UserControllerTest {
             .andExpect(jsonPath("$.nickname").value(nickname));
 
         ArgumentCaptor<String> nicknameCaptor = ArgumentCaptor.forClass(String.class);
-        verify(userService).updateUser(eq(userId), nicknameCaptor.capture());
+        verify(userService).updateUser(eq(userId), nicknameCaptor.capture(), eq(userId));
+        assertThat(nicknameCaptor.getValue()).isEqualTo(nickname);
+    }
+
+    @Test
+    @DisplayName("PATCH /api/users/{userId} - 허가되지 않은 접근 시 403 반환")
+    void updateUser_unauthorizedAccess_shouldReturnForbidden() throws Exception {
+        UUID userId = UUID.randomUUID();
+        String nickname = "nickname";
+        UUID currentUserId = UUID.randomUUID();
+
+        when(userService.updateUser(eq(userId), any(), eq(currentUserId))).thenThrow(new RuntimeException("Unauthorized"));
+
+        mockMvc.perform(patch("/api/users/{userId}", userId)
+                .contentType(MediaType.TEXT_PLAIN)
+                .content(nickname))
+            .andExpect(status().isForbidden());
+
+        ArgumentCaptor<String> nicknameCaptor = ArgumentCaptor.forClass(String.class);
+        verify(userService).updateUser(eq(userId), nicknameCaptor.capture(), eq(currentUserId));
         assertThat(nicknameCaptor.getValue()).isEqualTo(nickname);
     }
 
@@ -150,13 +169,13 @@ class UserControllerTest {
         UUID userId = UUID.randomUUID();
         User deleted = sampleUser(userId, "user@example.com", "tester", "password123");
 
-        when(userService.deleteUser(userId)).thenReturn(deleted);
+        when(userService.deleteUser(userId, userId)).thenReturn(deleted);
 
         mockMvc.perform(delete("/api/users/{userId}", userId))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(userId.toString()));
 
-        verify(userService).deleteUser(userId);
+        verify(userService).deleteUser(userId, userId);
     }
 
     @Test

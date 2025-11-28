@@ -14,11 +14,11 @@ public interface UserService {
 
     User getUser(UUID userId);
 
-    User deactivateUser(UUID userId);
+    User deactivateUser(UUID userId, UUID currentUserId);
 
-    User updateUser(UUID userId, String nickname);
+    User updateUser(UUID userId, String nickname, UUID currentUserId);
 
-    User deleteUser(UUID userId);
+    User deleteUser(UUID userId, UUID currentUserId);
 
     void hardDeleteUser(UUID userId);
 

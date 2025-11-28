@@ -14,7 +14,9 @@ public enum ErrorCode {
     COMMENT_NOT_FOUND("Comment not found", 404, "C001"),
     BOOK_NOT_FOUND("Book not found", 404, "B001"),
     INVALID_REQUEST("Invalid request", 400, "COM001"),
-    INTERNAL_SERVER_ERROR("Internal server error", 500, "COM002");
+    INTERNAL_SERVER_ERROR("Internal server error", 500, "COM002"),
+    NOTIFICATION_NOT_FOUND("Notification not found", 404, "N001"),
+    UNAUTHORIZED_ACCESS("Unauthorized access", 401, "COM003");
 
     private final String message;
     private final int status;

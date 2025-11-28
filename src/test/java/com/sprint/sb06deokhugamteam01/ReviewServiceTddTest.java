@@ -76,7 +76,7 @@ class ReviewServiceTddTest {
                 .title("testBook")
                 .author("author")
                 .publisher("publisher")
-                .publishedDate(LocalDateTime.now())
+                .publishedDate(LocalDateTime.now().toLocalDate())
                 .reviewCount(10)
                 .rating(4.5)
                 .createdAt(LocalDateTime.now())

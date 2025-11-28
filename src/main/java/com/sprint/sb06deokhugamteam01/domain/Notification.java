@@ -47,4 +47,8 @@ public class Notification {
     @ManyToOne
     @JoinColumn(name = "review_id")
     private Review review;
+
+    public void confirm() {
+        this.confirmed = true;
+    }
 }

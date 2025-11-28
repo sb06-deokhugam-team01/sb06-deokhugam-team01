@@ -3,6 +3,7 @@ package com.sprint.sb06deokhugamteam01.service.user;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.dto.User.request.UserRegisterRequest;
 import com.sprint.sb06deokhugamteam01.dto.User.response.UserDto;
+import com.sprint.sb06deokhugamteam01.exception.common.UnauthorizedAccessException;
 import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.UserRepository;
@@ -57,23 +58,32 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User deactivateUser(UUID userId) {
+    public User deactivateUser(UUID userId, UUID currentUserId) {
         User user = getActiveUser(userId);
+        if(!userId.equals(currentUserId)) {
+            throw new UnauthorizedAccessException(detailMap("userId", currentUserId));
+        }
         user.deactivate();
         return userRepository.save(user);
     }
 
     @Override
-    public User updateUser(UUID userId, String nickname) {
+    public User updateUser(UUID userId, String nickname, UUID currentUserId) {
         User user = getActiveUser(userId);
+        if(!userId.equals(currentUserId)) {
+            throw new UnauthorizedAccessException(detailMap("userId", currentUserId));
+        }
         user.updateProfile(nickname);
         return userRepository.save(user);
     }
 
     @Override
     @Transactional
-    public User deleteUser(UUID userId) {
+    public User deleteUser(UUID userId, UUID currentUserId) {
         User user = getExistingUser(userId);
+        if(!userId.equals(currentUserId)) {
+            throw new UnauthorizedAccessException(detailMap("userId", currentUserId));
+        }
         user.markDeleted(LocalDateTime.now());
         return userRepository.save(user);
     }

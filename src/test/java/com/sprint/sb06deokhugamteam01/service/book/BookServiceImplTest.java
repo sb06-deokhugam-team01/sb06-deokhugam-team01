@@ -317,7 +317,7 @@ class BookServiceImplTest {
                 .thumbnailUrl(bookDto.thumbnailUrl())
                 .build();
 
-        when(bookRepository.existsById(bookId))
+        when(bookRepository.existsById(bookId.toString()))
                 .thenReturn(true);
 
         when(bookRepository.save(any(Book.class)))
@@ -351,7 +351,7 @@ class BookServiceImplTest {
                 .publishedDate(LocalDate.now())
                 .build();
 
-        when(bookRepository.existsById(bookId))
+        when(bookRepository.existsById(bookId.toString()))
                 .thenReturn(false);
 
         //when
@@ -404,7 +404,7 @@ class BookServiceImplTest {
         //given
         UUID bookId = bookDto.id();
 
-        when(bookRepository.existsById(bookId))
+        when(bookRepository.existsById(bookId.toString()))
                 .thenReturn(true);
 
         when(bookRepository.findById(bookId))
