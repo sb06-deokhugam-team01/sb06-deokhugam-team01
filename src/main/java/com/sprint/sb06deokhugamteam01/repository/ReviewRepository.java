@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface ReviewRepository extends JpaRepository<ReviewLog, UUID> {
+public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     List<Review> findByBook_Id(UUID bookId);
 
