@@ -5,7 +5,11 @@ import com.sprint.sb06deokhugamteam01.domain.review.Review;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentCreateRequest;
 import com.sprint.sb06deokhugamteam01.dto.comment.CommentDto;
+import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentListRequest;
+import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentSearchCondition;
 import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentUpdateRequest;
+import com.sprint.sb06deokhugamteam01.dto.comment.response.CommentSliceResult;
+import com.sprint.sb06deokhugamteam01.dto.comment.response.CursorPageCommentResponse;
 import com.sprint.sb06deokhugamteam01.exception.comment.CommentAccessDeniedException;
 import com.sprint.sb06deokhugamteam01.exception.comment.CommentNotFoundException;
 import com.sprint.sb06deokhugamteam01.exception.review.ReviewNotFoundException;
@@ -19,8 +23,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -324,5 +331,58 @@ public class CommentServiceTest {
         assertThatThrownBy(() -> commentService.getComment(invalidCommentId))
                 .isInstanceOf(CommentNotFoundException.class);
         verify(commentRepository).findById(any(UUID.class));
+    }
+
+    @Test
+    @DisplayName("리뷰 댓글 목록 조회 성공")
+    void getComments_Success(){
+        // given
+        UUID reviewId = UUID.randomUUID();
+        Review review = Review.builder().build();
+        ReflectionTestUtils.setField(review, "id", reviewId);
+
+        User userA = User.builder().nickname("유저A").build();
+        ReflectionTestUtils.setField(userA, "id", UUID.randomUUID());
+        User userB = User.builder().nickname("유저B").build();
+        ReflectionTestUtils.setField(userB, "id", UUID.randomUUID());
+
+        UUID commentAId = UUID.randomUUID();
+        UUID commentBId = UUID.randomUUID();
+        Comment commentA = Comment.builder().user(userA).review(review).build();
+        Comment commentB = Comment.builder().user(userB).review(review).build();
+        ReflectionTestUtils.setField(commentA, "id", commentAId);
+        ReflectionTestUtils.setField(commentB, "id", commentBId);
+        ReflectionTestUtils.setField(commentB, "createdAt", LocalDateTime.now());
+
+        given(reviewRepository.existsById(reviewId)).willReturn(true);
+        given(commentRepository.sliceComments(any(CommentSearchCondition.class)))
+                .willReturn(new CommentSliceResult(List.of(commentA, commentB), false, 2L));
+
+        CommentListRequest request = CommentListRequest.builder().reviewId(reviewId).build();
+
+        // when
+        CursorPageCommentResponse result = commentService.getComments(request);
+
+        // then
+        assertThat(result.content()).isInstanceOf(List.class);
+        assertThat(result.content()).hasOnlyElementsOfType(CommentDto.class);
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.totalElements()).isEqualTo(2);
+        assertThat(result.nextAfter()).isEqualTo(commentB.getCreatedAt());
+        assertThat(result.nextCursor()).isEqualTo(commentB.getId());
+        verify(commentRepository).sliceComments(any(CommentSearchCondition.class));
+    }
+    @Test
+    @DisplayName("존재하지 않는 리뷰로 목록 조회 실패")
+    void getComments_ReviewNotFound_Fail(){
+        // given
+        UUID invalidReviewId = UUID.randomUUID();
+        given(reviewRepository.existsById(invalidReviewId)).willReturn(false);
+
+        CommentListRequest request = CommentListRequest.builder().reviewId(invalidReviewId).build();
+
+        // when & then
+        assertThatThrownBy(() -> commentService.getComments(request))
+                .isInstanceOf(ReviewNotFoundException.class);
     }
 }

@@ -5,13 +5,14 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Builder
 public record CursorPageCommentResponse(
         List<CommentDto> content,
-        String nextCursor,
+        UUID nextCursor,
         LocalDateTime nextAfter,
         int size,
-        int totalElements,
+        Long totalElements,
         boolean hasNext
 ) {}

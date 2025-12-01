@@ -10,7 +10,7 @@ import java.util.UUID;
 public record CommentListRequest(
         UUID reviewId,
         Sort.Direction direction,
-        String cursor,
+        UUID cursor,
         LocalDateTime after,
         int limit
 ) {

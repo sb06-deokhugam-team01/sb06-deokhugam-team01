@@ -6,7 +6,9 @@ import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentCreateRequest;
 import com.sprint.sb06deokhugamteam01.dto.comment.CommentDto;
 import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentListRequest;
+import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentSearchCondition;
 import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentUpdateRequest;
+import com.sprint.sb06deokhugamteam01.dto.comment.response.CommentSliceResult;
 import com.sprint.sb06deokhugamteam01.dto.comment.response.CursorPageCommentResponse;
 import com.sprint.sb06deokhugamteam01.exception.comment.CommentAccessDeniedException;
 import com.sprint.sb06deokhugamteam01.exception.comment.CommentNotFoundException;
@@ -20,6 +22,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -101,14 +106,34 @@ public class CommentServiceImpl implements CommentService {
     }
 
     // 리뷰 댓글 목록 조회
-//    @Transactional(readOnly = true)
-//    @Override
-//    public CursorPageCommentResponse getComments(CommentListRequest request) {
-//        if(!reviewRepository.existsById(request.reviewId())) {
-//            throw new ReviewNotFoundException(Map.of("reviewId", request.reviewId()));
-//        }
-//
-//        log.info("리뷰 댓글 목록 조회 완료: reviewId={}", request.reviewId());
-//        return
-//    }
+    @Transactional(readOnly = true)
+    @Override
+    public CursorPageCommentResponse getComments(CommentListRequest request) {
+        if(!reviewRepository.existsById(request.reviewId())) {
+            throw new ReviewNotFoundException(Map.of("reviewId", request.reviewId()));
+        }
+
+        CommentSliceResult result = commentRepository.sliceComments(new CommentSearchCondition(
+                request.reviewId(), request.direction(), request.cursor(), request.after(), request.limit()));
+
+        List<CommentDto> content = new ArrayList<>();
+        for(Comment comment : result.comments()){
+            content.add(CommentDto.from(comment));
+        }
+
+        int size = content.size();
+        UUID nextCursor = (size == 0)? null : content.get(content.size()-1).id();
+        LocalDateTime nextAfter = (size == 0)? null : content.get(content.size()-1).createdAt();
+
+        // 리스트 값 하나 없애기 (nextCursor, nextAfter 가져오고)
+        log.info("리뷰 댓글 목록 조회 완료: reviewId={}", request.reviewId());
+        return CursorPageCommentResponse.builder()
+                .content(content)
+                .nextCursor(nextCursor)
+                .nextAfter(nextAfter)
+                .size(content.size())
+                .totalElements(result.totalElements())
+                .hasNext(result.hasNext())
+                .build();
+    }
 }

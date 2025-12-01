@@ -19,5 +19,5 @@ public interface CommentService {
 
     CommentDto getComment(UUID commentId);
 
-    // CursorPageCommentResponse getComments(CommentListRequest request);
+    CursorPageCommentResponse getComments(CommentListRequest request);
 }

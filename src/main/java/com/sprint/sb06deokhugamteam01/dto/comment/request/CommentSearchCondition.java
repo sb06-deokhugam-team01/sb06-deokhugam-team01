@@ -8,7 +8,7 @@ import java.util.UUID;
 public record CommentSearchCondition(
         UUID reviewId,
         Sort.Direction direction,
-        String cursor,
+        UUID cursor,
         LocalDateTime after,
         int limit
 ) {
