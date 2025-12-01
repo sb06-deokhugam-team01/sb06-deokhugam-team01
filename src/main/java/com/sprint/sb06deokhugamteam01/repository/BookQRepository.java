@@ -23,7 +23,7 @@ public interface BookQRepository extends QuerydslJpaRepository<Book, UUID> {
     default Slice<Book> findBooksByKeyword(PagingBookRequest pagingBookRequest) {
 
         List<Book> bookList = selectFrom(qBook)
-                .where(buildPredicate(pagingBookRequest).and(qBook.isActive.isTrue()))
+                .where(buildPredicate(pagingBookRequest).and(qBook.isActive))
                 .orderBy(buildOrderBy(pagingBookRequest))
                 .orderBy(pagingBookRequest.direction() == PagingBookRequest.SortDirection.ASC
                         ? qBook.createdAt.asc()
@@ -33,7 +33,7 @@ public interface BookQRepository extends QuerydslJpaRepository<Book, UUID> {
 
         return new SliceImpl<>(
                 bookList,
-                Pageable.ofSize(bookList.size()-1),
+                Pageable.ofSize(pagingBookRequest.limit()),
                 bookList.size() > pagingBookRequest.limit()
         );
 
@@ -59,10 +59,14 @@ public interface BookQRepository extends QuerydslJpaRepository<Book, UUID> {
 
                 //커서 기준 orderBy 필드 값 가져오기
                 switch (request.orderBy()) {
-                    case TITLE -> builder.and(qBook.title.goe(request.cursor()));
-                    case PUBLISHED_DATE -> builder.and(qBook.publishedDate.goe(LocalDate.parse(request.cursor())));
-                    case RATING -> builder.and(qBook.rating.goe(Double.parseDouble(request.cursor())));
-                    case REVIEW_COUNT -> builder.and(qBook.reviewCount.goe(Integer.parseInt(request.cursor())));
+                    case TITLE -> builder.and(qBook.title.gt(request.cursor()))
+                            .or(qBook.title.eq(request.cursor()).and(qBook.createdAt.gt(request.after())));
+                    case PUBLISHED_DATE -> builder.and(qBook.publishedDate.gt(LocalDate.parse(request.cursor())))
+                            .or(qBook.publishedDate.eq(LocalDate.parse(request.cursor())).and(qBook.createdAt.gt(request.after())));
+                    case RATING -> builder.and(qBook.rating.gt(Double.parseDouble(request.cursor())))
+                            .or(qBook.rating.eq(Double.parseDouble(request.cursor())).and(qBook.createdAt.gt(request.after())));
+                    case REVIEW_COUNT -> builder.and(qBook.reviewCount.gt(Integer.parseInt(request.cursor())))
+                            .or(qBook.reviewCount.eq(Integer.parseInt(request.cursor())).and(qBook.createdAt.gt(request.after())));
                     default -> throw new IllegalArgumentException("Invalid orderBy field: " + request.orderBy());
                 }
 
@@ -70,10 +74,14 @@ public interface BookQRepository extends QuerydslJpaRepository<Book, UUID> {
 
                 //커서 기준 orderBy 필드 값 가져오기
                 switch (request.orderBy()) {
-                    case TITLE -> builder.and(qBook.title.loe(request.cursor()));
-                    case PUBLISHED_DATE -> builder.and(qBook.publishedDate.loe(LocalDate.parse(request.cursor())));
-                    case RATING -> builder.and(qBook.rating.loe(Double.parseDouble(request.cursor())));
-                    case REVIEW_COUNT -> builder.and(qBook.reviewCount.loe(Integer.parseInt(request.cursor())));
+                    case TITLE -> builder.and(qBook.title.lt(request.cursor()))
+                            .or(qBook.title.eq(request.cursor()).and(qBook.createdAt.lt(request.after())));
+                    case PUBLISHED_DATE -> builder.and(qBook.publishedDate.lt(LocalDate.parse(request.cursor())))
+                            .or(qBook.publishedDate.eq(LocalDate.parse(request.cursor())).and(qBook.createdAt.lt(request.after())));
+                    case RATING -> builder.and(qBook.rating.lt(Double.parseDouble(request.cursor())))
+                            .or(qBook.rating.eq(Double.parseDouble(request.cursor())).and(qBook.createdAt.lt(request.after())));
+                    case REVIEW_COUNT -> builder.and(qBook.reviewCount.lt(Integer.parseInt(request.cursor())))
+                            .or(qBook.reviewCount.eq(Integer.parseInt(request.cursor())).and(qBook.createdAt.lt(request.after())));
                     default -> throw new IllegalArgumentException("Invalid orderBy field: " + request.orderBy());
                 }
 

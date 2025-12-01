@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: sb06-deokhugam-team01
+  datasource:
+    url: jdbc:h2:mem:deokhugam;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: ${SPRING_DATASOURCE_USERNAME:deokhugam}
+    password: ${SPRING_DATASOURCE_PASSWORD:deokhugam}
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
