@@ -25,7 +25,7 @@ class NaverBookSearchServiceTest {
     @DisplayName("ISBN으로 도서 검색 테스트")
     void testSearchBookByIsbn() {
 
-        String testIsbn = "9788966262083"; // 예시 ISBN
+        String testIsbn = "9791155976043"; // 예시 ISBN
         BookDto book = naverBookSearchService.searchBookByIsbn(testIsbn);
 
         assertNotNull(book);

@@ -1,14 +1,17 @@
 package com.sprint.sb06deokhugamteam01.service.book;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.sb06deokhugamteam01.dto.book.BookDto;
 import com.sprint.sb06deokhugamteam01.exception.book.BookInfoFetchFailedException;
 import com.sprint.sb06deokhugamteam01.exception.book.InvalidIsbnException;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,8 +21,8 @@ import java.util.Map;
 public class NaverBookSearchService implements BookSearchService{
 
     private String naverApiEndpoint = "https://openapi.naver.com/v1/search/book_adv.json";
-    private String apiClientId;
-    private String apiClientSecret;
+    private String apiClientId = "OS6JJt8URs4fraJUGKgE";
+    private String apiClientSecret = "eLwWy1nIie";
 
     @Override
     public BookDto searchBookByIsbn(String isbn) {
@@ -28,7 +31,7 @@ public class NaverBookSearchService implements BookSearchService{
                 .baseUrl(naverApiEndpoint)
                 .build();
 
-        String result = restClient.get()
+        NaverBookSearchResponse result = restClient.get()
                 .uri(uriBuilder -> uriBuilder.queryParam("d_isbn", isbn)
                         .build())
                 .header("X-Naver-Client-Id", apiClientId)
@@ -40,11 +43,54 @@ public class NaverBookSearchService implements BookSearchService{
                 .onStatus(HttpStatusCode::is5xxServerError, ((request, response) -> {
                     throw new BookInfoFetchFailedException(detailMap("isbn", isbn));
                 }))
-                .body(String.class);
+                .body(NaverBookSearchResponse.class);
 
-        log.info("Naver Book Search API response: {}", result);
+        if (result.items.length == 0) {
+            throw new InvalidIsbnException(detailMap("isbn", isbn));
+        }
 
-        return null;
+        BookData bookData = result.items()[0];
+
+        return BookDto.builder()
+                .title(bookData.title)
+                .author(bookData.author)
+                .description(bookData.description)
+                .publisher(bookData.publisher)
+                .publishedDate(bookData.getPublishedDate())
+                .isbn(bookData.isbn)
+                .thumbnailUrl(bookData.image)
+                .build();
+    }
+
+    private record NaverBookSearchResponse(
+            String lastBuildDate,
+            int total,
+            int start,
+            int display,
+            BookData[] items
+    ) {}
+
+    private record BookData(
+            String title,
+            String link,
+            String image,
+            String author,
+            String discount,
+            String publisher,
+            String pubdate,
+            String isbn,
+            String description
+    ) {
+        public LocalDate getPublishedDate() {
+            if (pubdate.length() != 8) {
+                return null;
+            }
+            return LocalDate.of(
+                    Integer.parseInt(pubdate.substring(0, 4)),  // year
+                    Integer.parseInt(pubdate.substring(4, 6)),  // month
+                    Integer.parseInt(pubdate.substring(6, 8))   // day
+            );
+        }
     }
 
     private Map<String, Object> detailMap(String key, Object value) {
