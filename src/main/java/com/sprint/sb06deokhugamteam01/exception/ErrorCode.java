@@ -10,7 +10,7 @@ public enum ErrorCode {
     ALREADY_EXISTS_ISBN("All ready exists ISBN", 400, "B002"),
     BOOK_INFO_FETCH_FAILED("Book info fetch failed", 500, "B003"),
     INVALID_ISBN("Invalid ISBN", 400, "B004"),
-    S3_UPLOAD_FAILED("S3 upload failed", 500, "COM003"),
+    // S3_UPLOAD_FAILED("S3 upload failed", 500, "COM003"),
     USER_NOT_FOUND("User not found", 404, "U001"),
     INVALID_USER("Invalid user", 400, "U002"),
     REVIEW_NOT_FOUND("Review not found", 404, "R001"),

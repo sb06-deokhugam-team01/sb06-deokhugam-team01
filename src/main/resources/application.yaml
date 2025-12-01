@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: sb06-deokhugam-team01
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/deokhugam}
+    username: ${SPRING_DATASOURCE_USERNAME:deokhugam}
+    password: ${SPRING_DATASOURCE_PASSWORD:deokhugam}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect

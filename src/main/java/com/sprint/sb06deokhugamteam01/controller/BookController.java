@@ -2,6 +2,7 @@ package com.sprint.sb06deokhugamteam01.controller;
 
 import com.sprint.sb06deokhugamteam01.dto.book.BookDto;
 import com.sprint.sb06deokhugamteam01.dto.book.request.BookCreateRequest;
+import com.sprint.sb06deokhugamteam01.dto.book.request.BookUpdateRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.request.PagingBookRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.response.BookInfo;
 import com.sprint.sb06deokhugamteam01.dto.book.response.CursorPageResponseBookDto;
@@ -73,7 +74,7 @@ public class BookController {
     @PatchMapping("/{bookId}")
     public ResponseEntity<BookDto> updateBookById(
             @PathVariable UUID bookId,
-            @Valid @RequestPart("bookData") BookCreateRequest request,
+            @Valid @RequestPart("bookData") BookUpdateRequest request,
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage) {
         log.info("Received Book update request: bookId={}", bookId);
         BookDto updatedBook = bookService.updateBook(bookId, request, thumbnailImage);

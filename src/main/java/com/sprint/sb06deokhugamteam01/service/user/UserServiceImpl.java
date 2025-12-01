@@ -2,6 +2,7 @@ package com.sprint.sb06deokhugamteam01.service.user;
 
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.dto.User.request.UserRegisterRequest;
+import com.sprint.sb06deokhugamteam01.dto.User.request.UserUpdateRequest;
 import com.sprint.sb06deokhugamteam01.dto.User.response.UserDto;
 import com.sprint.sb06deokhugamteam01.exception.common.UnauthorizedAccessException;
 import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
@@ -28,10 +29,11 @@ public class UserServiceImpl implements UserService {
             throw new InvalidUserException(detailMap("email", request.email()));
         }
 
+        String sanitizedNickname = request.nickname().trim();
+
         User user = User.builder()
-            .id(UUID.randomUUID())
             .email(request.email())
-            .nickname(request.nickname())
+            .nickname(sanitizedNickname)
             .password(request.password())
             .createdAt(LocalDateTime.now())
             .isActive(true)
@@ -68,12 +70,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUser(UUID userId, String nickname, UUID currentUserId) {
+    public User updateUser(UUID userId, String request, UUID currentUserId) {
         User user = getActiveUser(userId);
         if(!userId.equals(currentUserId)) {
             throw new UnauthorizedAccessException(detailMap("userId", currentUserId));
         }
-        user.updateProfile(nickname);
+        user.updateProfile(request);
         return userRepository.save(user);
     }
 
