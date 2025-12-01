@@ -1,5 +1,6 @@
 package com.sprint.sb06deokhugamteam01.dto.review;
 
+import jakarta.validation.constraints.Min;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -14,6 +15,8 @@ public record CursorPageReviewRequest(
         SortDirection direction,
         String cursor,
         LocalDateTime after,
+
+        @Min(value = 1)
         Integer limit
 ) {
 

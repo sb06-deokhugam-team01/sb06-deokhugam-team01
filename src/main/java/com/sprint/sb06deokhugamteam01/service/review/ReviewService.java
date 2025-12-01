@@ -8,21 +8,21 @@ public interface ReviewService {
 
     ReviewDto createReview(ReviewCreateRequest request);
 
-    ReviewDto getReview(ReviewOperationRequest request, UUID requestUserId);
+    ReviewDto getReview(UUID reviewId, UUID requestUserId);
 
     CursorPageResponseReviewDto getReviews(CursorPageReviewRequest request, UUID requestUserId);
 
     CursorPageResponsePopularReviewDto getPopularReviews(CursorPagePopularReviewRequest request,
                                                          UUID requestUserId);
 
-    ReviewDto updateReview(ReviewOperationRequest request,
+    ReviewDto updateReview(UUID reviewId,
                            ReviewUpdateRequest updateRequest,
                            UUID requestUserId);
 
-    void deleteReview(ReviewOperationRequest request, UUID requestUserId);
+    void deleteReview(UUID reviewId, UUID requestUserId);
 
-    void hardDeleteReview(ReviewOperationRequest request, UUID requestUserId);
+    void hardDeleteReview(UUID reviewId, UUID requestUserId);
 
-    ReviewLikeDto likeReview(ReviewOperationRequest request, UUID requestUserId);
+    ReviewLikeDto likeReview(UUID reviewId, UUID requestUserId);
 
 }

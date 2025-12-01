@@ -75,7 +75,7 @@ public class BookServiceImpl implements  BookService {
     @Override
     public BookDto createBook(BookCreateRequest bookCreateRequest, @Nullable MultipartFile file) {
 
-        if (bookRepository.existsByIsbn(bookCreateRequest.isbn())) {
+        if (bookRepository.existsByIsbn(bookCreateRequest.isbn()) && bookRepository.findByIsbn(bookCreateRequest.isbn()).get().isActive()) {
             throw new AlreadyExistsIsbnException(detailMap("isbn", bookCreateRequest.isbn()));
         }
 
@@ -93,6 +93,10 @@ public class BookServiceImpl implements  BookService {
 
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new NoSuchBookException(detailMap("id", id)));
+
+        if (!book.isActive()) {
+            throw new NoSuchBookException(detailMap("id", id));
+        }
 
         book.updateBook(
                 bookUpdateRequest.title(),
@@ -112,6 +116,10 @@ public class BookServiceImpl implements  BookService {
 
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new NoSuchBookException(detailMap("id", id)));
+
+        if (!book.isActive()) {
+            throw new NoSuchBookException(detailMap("id", id));
+        }
 
         book.softDelete();
 

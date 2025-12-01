@@ -116,7 +116,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         return r.content.containsIgnoreCase(keyword)
                 .or(r.user.nickname.containsIgnoreCase(keyword))
                 .or(r.book.title.containsIgnoreCase(keyword));
-    }
+    } 
 
     /**
      * orderBy 절 OrderSpecifier 생성 메서드들
