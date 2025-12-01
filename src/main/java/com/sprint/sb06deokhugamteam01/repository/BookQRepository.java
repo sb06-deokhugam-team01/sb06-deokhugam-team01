@@ -23,7 +23,7 @@ public interface BookQRepository extends QuerydslJpaRepository<Book, UUID> {
     default Slice<Book> findBooksByKeyword(PagingBookRequest pagingBookRequest) {
 
         List<Book> bookList = selectFrom(qBook)
-                .where(buildPredicate(pagingBookRequest))
+                .where(buildPredicate(pagingBookRequest).and(qBook.isActive))
                 .orderBy(buildOrderBy(pagingBookRequest))
                 .orderBy(pagingBookRequest.direction() == PagingBookRequest.SortDirection.ASC
                         ? qBook.createdAt.asc()
@@ -49,7 +49,7 @@ public interface BookQRepository extends QuerydslJpaRepository<Book, UUID> {
                 qBook.title.likeIgnoreCase(keyword)
                     .or(qBook.isbn.likeIgnoreCase(keyword))
                     .or(qBook.author.likeIgnoreCase(keyword))
-            ).and(qBook.isActive.eq(true));
+            );
         }
 
         //커서 기반 페이지네이션
