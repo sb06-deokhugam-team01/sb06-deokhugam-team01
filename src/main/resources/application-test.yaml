@@ -17,10 +17,5 @@ spring:
 naver:
   api:
     endpoint: https://openapi.naver.com/v1/search/book_adv.json
-    client-id: ${NAVER_API_CLIENT_ID}
-    client-secret: ${NAVER_API_CLIENT_SECRET}
-ocr:
-  space:
-    api:
-      endpoint: https://api.ocr.space/parse/image
-      key: ${OCR_SPACE_API_KEY}
+    client-id: ${NAVER_API_CLIENT_ID:NAVER_API_CLIENT_ID}
+    client-secret: ${NAVER_API_CLIENT_SECRET:NAVER_API_CLIENT_SECRET}

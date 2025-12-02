@@ -7,6 +7,7 @@ import com.sprint.sb06deokhugamteam01.exception.book.InvalidIsbnException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -20,8 +21,11 @@ import java.util.Map;
 @Slf4j
 public class NaverBookSearchService implements BookSearchService{
 
-    private String naverApiEndpoint = "https://openapi.naver.com/v1/search/book_adv.json";
+    @Value("${naver.api.endpoint}")
+    private String naverApiEndpoint;
+    @Value("${naver.api.client-id}")
     private String apiClientId;
+    @Value("${naver.api.client-secret}")
     private String apiClientSecret;
 
     @Override
