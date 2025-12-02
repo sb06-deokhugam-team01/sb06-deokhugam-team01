@@ -1,26 +1,19 @@
-package com.sprint.sb06deokhugamteam01.service.notification;
+package com.sprint.sb06deokhugamteam01.repository.notification;
 
 import com.sprint.sb06deokhugamteam01.domain.Notification;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
-public interface NotificationService {
-
-    Notification updateNotification(UUID notificationId, String newContent, boolean confirmed);
-
-    Notification deleteNotification(UUID notificationId);
+public interface NotificationRepositoryCustom {
 
     Slice<Notification> getNotifications(
         UUID userId,
-        String direction,
         String cursor,
         LocalDateTime after,
+        boolean ascending,
         Integer limit,
         Pageable pageable
     );
-
-    List<Notification> updateAll(UUID userId);
 }

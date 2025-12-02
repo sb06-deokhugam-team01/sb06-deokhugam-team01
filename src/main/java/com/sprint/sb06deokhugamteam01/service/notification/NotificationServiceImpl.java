@@ -2,11 +2,14 @@ package com.sprint.sb06deokhugamteam01.service.notification;
 
 import com.sprint.sb06deokhugamteam01.domain.Notification;
 import com.sprint.sb06deokhugamteam01.exception.notification.NotificationNotFoundException;
-import com.sprint.sb06deokhugamteam01.repository.NotificationRepository;
+import com.sprint.sb06deokhugamteam01.repository.notification.NotificationRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,8 +41,10 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<Notification> getNotifications(UUID userId) {
-        return notificationRepository.findAllByUserIdAndConfirmedFalse(userId);
+    public Slice<Notification> getNotifications(UUID userId, String direction, String cursor,
+        LocalDateTime after, Integer limit, Pageable pageable) {
+        boolean ascending = direction != null && direction.equalsIgnoreCase("ASC");
+        return notificationRepository.getNotifications(userId, cursor, after, ascending, limit, pageable);
     }
 
     @Override

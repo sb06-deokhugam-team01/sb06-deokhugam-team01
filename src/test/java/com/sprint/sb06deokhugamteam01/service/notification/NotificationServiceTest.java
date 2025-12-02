@@ -9,7 +9,8 @@ import static org.mockito.Mockito.when;
 
 import com.sprint.sb06deokhugamteam01.domain.Notification;
 import com.sprint.sb06deokhugamteam01.exception.notification.NotificationNotFoundException;
-import com.sprint.sb06deokhugamteam01.repository.NotificationRepository;
+import com.sprint.sb06deokhugamteam01.repository.notification.NotificationRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +21,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
@@ -90,20 +93,22 @@ class NotificationServiceTest {
     }
 
     @Test
-    @DisplayName("getNotifications: 특정 사용자의 미확인 알림만 반환한다.")
-    void getNotifications_shouldReturnUnconfirmedForUser() {
+    @DisplayName("getNotifications: 사용자별 알림을 정렬/커서 조건으로 조회한다.")
+    void getNotifications_shouldDelegateToRepositoryWithDirectionAndCursor() {
         UUID userId = UUID.randomUUID();
         List<Notification> notifications = List.of(
-            Notification.builder().id(UUID.randomUUID()).user(null).confirmed(false).build(),
-            Notification.builder().id(UUID.randomUUID()).user(null).confirmed(false).build()
+            Notification.builder().id(UUID.randomUUID()).confirmed(false).build(),
+            Notification.builder().id(UUID.randomUUID()).confirmed(true).build()
         );
+        Slice<Notification> slice = new SliceImpl<>(notifications);
 
-        when(notificationRepository.findAllByUserIdAndConfirmedFalse(userId)).thenReturn(notifications);
+        when(notificationRepository.getNotifications(userId, null, null, false, null, null))
+            .thenReturn(slice);
 
-        List<Notification> result = target.getNotifications(userId);
+        Slice<Notification> result = target.getNotifications(userId, "DESC", null, null, null, null);
 
-        verify(notificationRepository).findAllByUserIdAndConfirmedFalse(userId);
-        assertThat(result).isEqualTo(notifications);
+        verify(notificationRepository).getNotifications(userId, null, null, false, null, null);
+        assertThat(result.getContent()).isEqualTo(notifications);
     }
 
     @Test

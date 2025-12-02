@@ -2,8 +2,10 @@ package com.sprint.sb06deokhugamteam01.exception;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -27,6 +29,26 @@ public class GlobalExceptionHandler {
                         .code(errorCode.getCode())
                         .details(ex.getDetails())
                         .timestamp(ex.getTimestamp())
+                        .exceptionType(ex.getClass().getSimpleName())
+                        .build());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(MethodArgumentNotValidException ex) {
+        ErrorCode errorCode = ErrorCode.INVALID_REQUEST;
+        Map<String, Object> details = ex.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(
+                        fieldError -> fieldError.getField(),
+                        fieldError -> fieldError.getDefaultMessage(),
+                        (existing, replacement) -> existing));
+
+        return ResponseEntity.status(errorCode.getStatus())
+                .body(ErrorDto.builder()
+                        .message(errorCode.getMessage())
+                        .status(errorCode.getStatus())
+                        .code(errorCode.getCode())
+                        .details(details)
+                        .timestamp(LocalDateTime.now())
                         .exceptionType(ex.getClass().getSimpleName())
                         .build());
     }

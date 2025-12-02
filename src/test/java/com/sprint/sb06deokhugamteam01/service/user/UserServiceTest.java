@@ -13,6 +13,7 @@ import com.sprint.sb06deokhugamteam01.exception.common.UnauthorizedAccessExcepti
 import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.UserRepository;
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -55,7 +56,13 @@ class UserServiceTest {
         UserRegisterRequest request = new UserRegisterRequest(email, password, nickname);
 
         when(userRepository.existsByEmail(email)).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenAnswer(returnFirstArgument);
+        when(userRepository.save(any(User.class))).thenAnswer(invocationOnMock -> {
+            User user = invocationOnMock.getArgument(0);
+            Field id = User.class.getDeclaredField("id");
+            id.setAccessible(true);
+            id.set(user, UUID.randomUUID());
+            return user;
+        });
 
         User result = target.createUser(request);
 

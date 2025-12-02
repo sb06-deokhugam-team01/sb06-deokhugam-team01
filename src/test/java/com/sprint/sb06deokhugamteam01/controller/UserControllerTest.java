@@ -17,18 +17,30 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.dto.User.request.UserRegisterRequest;
+import com.sprint.sb06deokhugamteam01.exception.common.UnauthorizedAccessException;
 import com.sprint.sb06deokhugamteam01.service.user.UserService;
+import java.util.Map;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+@ImportAutoConfiguration(exclude = {
+    DataSourceAutoConfiguration.class,
+    HibernateJpaAutoConfiguration.class,
+    JpaRepositoriesAutoConfiguration.class
+})
 @WebMvcTest(UserController.class)
 class UserControllerTest {
 
@@ -40,6 +52,8 @@ class UserControllerTest {
 
     @MockitoBean
     private UserService userService;
+    @MockitoBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
     @Test
     @DisplayName("POST /api/users - 성공 시 200 OK와 사용자 정보 반환")
@@ -53,7 +67,7 @@ class UserControllerTest {
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id").value(userId.toString()))
             .andExpect(jsonPath("$.email").value(request.email()))
             .andExpect(jsonPath("$.nickname").value(request.nickname()));
@@ -135,7 +149,8 @@ class UserControllerTest {
 
         mockMvc.perform(patch("/api/users/{userId}", userId)
                 .contentType(MediaType.TEXT_PLAIN)
-                .content(nickname))
+                .content(nickname)
+                .header("Deokhugam-Request-User-ID", userId.toString()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.nickname").value(nickname));
 
@@ -151,12 +166,14 @@ class UserControllerTest {
         String nickname = "nickname";
         UUID currentUserId = UUID.randomUUID();
 
-        when(userService.updateUser(eq(userId), any(), eq(currentUserId))).thenThrow(new RuntimeException("Unauthorized"));
+        when(userService.updateUser(eq(userId), any(), eq(currentUserId)))
+            .thenThrow(new UnauthorizedAccessException(Map.of()));
 
         mockMvc.perform(patch("/api/users/{userId}", userId)
                 .contentType(MediaType.TEXT_PLAIN)
-                .content(nickname))
-            .andExpect(status().isForbidden());
+                .content(nickname)
+                .header("Deokhugam-Request-User-ID", currentUserId.toString()))
+            .andExpect(status().isUnauthorized());
 
         ArgumentCaptor<String> nicknameCaptor = ArgumentCaptor.forClass(String.class);
         verify(userService).updateUser(eq(userId), nicknameCaptor.capture(), eq(currentUserId));
@@ -171,9 +188,9 @@ class UserControllerTest {
 
         when(userService.deleteUser(userId, userId)).thenReturn(deleted);
 
-        mockMvc.perform(delete("/api/users/{userId}", userId))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(userId.toString()));
+        mockMvc.perform(delete("/api/users/{userId}", userId)
+                .header("Deokhugam-Request-User-ID", userId.toString()))
+            .andExpect(status().isNoContent());
 
         verify(userService).deleteUser(userId, userId);
     }

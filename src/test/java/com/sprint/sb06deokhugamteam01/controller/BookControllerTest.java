@@ -59,23 +59,23 @@ class BookControllerTest {
 
         //when
         when(bookService.getBooksByPage(any(PagingBookRequest.class)))
-                .thenReturn(response);
+            .thenReturn(response);
 
         //then
         mockMvc.perform(MockMvcRequestBuilders.get("/books")
                 .param("keyword", request.keyword())
-                .param("orderBy", request.orderBy())
-                .param("direction", request.direction())
+                .param("orderBy", String.valueOf(request.orderBy()))
+                .param("direction", String.valueOf(request.direction()))
                 .param("cursor", request.cursor())
                 .param("after", String.valueOf(request.after()))
                 .param("limit", String.valueOf(request.limit()))
-                )
+            )
             .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.nextCursor").value(response.getNextCursor()))
-                .andExpect(jsonPath("$.nextAfter").value(response.getNextAfter()))
-                .andExpect(jsonPath("$.size").value(response.getSize()))
-                .andExpect(jsonPath("$.totalElements").value(response.getTotalElements()));
+            .andExpect(jsonPath("$.content").isArray())
+            .andExpect(jsonPath("$.nextCursor").value(response.getNextCursor()))
+            .andExpect(jsonPath("$.nextAfter").value(response.getNextAfter()))
+            .andExpect(jsonPath("$.size").value(response.getSize()))
+            .andExpect(jsonPath("$.totalElements").value(response.getTotalElements()));
 
     }
 
@@ -92,12 +92,12 @@ class BookControllerTest {
         //then
         mockMvc.perform(MockMvcRequestBuilders.get("/api/books")
                 .param("keyword", request.keyword())
-                .param("orderBy", request.orderBy())
-                .param("direction", request.direction())
+                .param("orderBy", String.valueOf(request.orderBy()))
+                .param("direction", String.valueOf(request.direction()))
                 .param("cursor", request.cursor())
                 .param("after", String.valueOf(request.after()))
                 .param("limit", String.valueOf(invalidLimit))
-                )
+            )
             .andExpect(status().isBadRequest());
 
 
@@ -121,7 +121,7 @@ class BookControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/api/books/")
                 .param("bookData", objectMapper.writeValueAsString(bookCreateRequest))
                 .param("thumbnailImage", String.valueOf(thumbnailImage))
-        )
+            )
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id").value(bookDto.id().toString()))
             .andExpect(jsonPath("$.title").value(bookDto.title()))
@@ -138,11 +138,11 @@ class BookControllerTest {
         BookCreateRequest invalidRequest = BookCreateRequest.builder()
             .title("") // 빈 제목은 잘못된 입력 데이터
             .author("Author Name")
-                .description("Description")
-                .publisher("Publisher")
-                .publishedDate(LocalDate.EPOCH)
+            .description("Description")
+            .publisher("Publisher")
+            .publishedDate(LocalDate.EPOCH)
             .isbn("1234567890")
-                .build();
+            .build();
 
         MultipartFile thumbnailImage = null;
 
@@ -150,7 +150,7 @@ class BookControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/api/books/")
                 .param("bookData", objectMapper.writeValueAsString(invalidRequest))
                 .param("thumbnailImage", String.valueOf(thumbnailImage))
-        )
+            )
             .andExpect(status().isBadRequest());
 
     }
