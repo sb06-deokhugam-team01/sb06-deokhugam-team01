@@ -44,6 +44,12 @@ class BookServiceImplTest {
     @Mock
     private ReviewRepository reviewRepository;
 
+    @Mock
+    private BookSearchService bookSearchService;
+
+    @Mock
+    private OcrService ocrService;
+
     @InjectMocks
     private BookServiceImpl bookService;
 
@@ -286,29 +292,57 @@ class BookServiceImplTest {
     }
 
     //외부 api 테스트이므로 현재는 실패
-//    @Test
-//    @DisplayName("createBook 실패 테스트 - S3 업로드 오류")
-//    void createBook_Fail_S3UploadError() {
-//
-//        //given
-//        BookCreateRequest bookCreateRequest = new BookCreateRequest(
-//                "9788966262084",
-//                "테스트 도서",
-//                "테스트 저자",
-//                "테스트 출판사",
-//                LocalDate.now(),
-//                "sdfadsfadsf"
-//        );
-//
-//        //when
-//        S3UploadFailedException exception = assertThrows(S3UploadFailedException.class, () -> {
-//            bookService.createBook(bookCreateRequest, null);
-//        });
-//
-//        //then
-//        assertEquals("S3 업로드에 실패하였습니다.", exception.getMessage());
-//
-//    }
+    /*@Test
+    @DisplayName("createBook 실패 테스트 - S3 업로드 오류")
+    void createBook_Fail_S3UploadError() {
+
+        //given
+        BookCreateRequest bookCreateRequest = new BookCreateRequest(
+                "9788966262084",
+                "테스트 도서",
+                "테스트 저자",
+                "테스트 출판사",
+                LocalDate.now(),
+                "sdfadsfadsf"
+        );
+
+        //when
+        S3UploadFailedException exception = assertThrows(S3UploadFailedException.class, () -> {
+            bookService.createBook(bookCreateRequest, null);
+        });
+
+        //then
+        assertEquals("S3 업로드에 실패하였습니다.", exception.getMessage());
+
+    }*/
+
+    @Test
+    @DisplayName("createBookByIsbn 성공 테스트")
+    void createBookByIsbn_Success() {
+
+        //given
+        String isbn = "9788966262084";
+
+        when(bookRepository.existsByIsbn(isbn))
+                .thenReturn(false);
+
+        when(ocrService.extractIsbnFromImage(any(byte[].class), any(String.class)))
+                .thenReturn(isbn);
+
+        when(bookSearchService.searchBookByIsbn(isbn))
+                .thenReturn(bookDto);
+
+        when(bookRepository.save(any(Book.class)))
+                .thenReturn(book);
+
+        //when
+        BookDto result = bookService.createBookByIsbn(isbn);
+
+        //then
+        assertNotNull(result);
+        assertEquals(book.getIsbn(), result.isbn());
+
+    }
 
     @Test
     @DisplayName("updateBook 성공 테스트")
