@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 
 @Builder
 public record CursorPagePopularReviewRequest(
+
         RankCriteria period,
         SortDirection direction,
         String cursor,

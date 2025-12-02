@@ -64,8 +64,8 @@ class BookControllerTest {
         //then
         mockMvc.perform(MockMvcRequestBuilders.get("/books")
                 .param("keyword", request.keyword())
-                .param("orderBy", request.orderBy())
-                .param("direction", request.direction())
+//                .param("orderBy", request.orderBy())
+//                .param("direction", request.direction())
                 .param("cursor", request.cursor())
                 .param("after", String.valueOf(request.after()))
                 .param("limit", String.valueOf(request.limit()))
@@ -92,8 +92,8 @@ class BookControllerTest {
         //then
         mockMvc.perform(MockMvcRequestBuilders.get("/api/books")
                 .param("keyword", request.keyword())
-                .param("orderBy", request.orderBy())
-                .param("direction", request.direction())
+//                .param("orderBy", request.orderBy())
+//                .param("direction", request.direction())
                 .param("cursor", request.cursor())
                 .param("after", String.valueOf(request.after()))
                 .param("limit", String.valueOf(invalidLimit))

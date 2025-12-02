@@ -8,10 +8,10 @@ import java.util.UUID;
 @Builder
 public record ReviewCreateRequest (
 
-        @NotBlank(message = "도서 ID는 공백일 수 없습니다.")
+        @NotNull(message = "도서 ID는 공백일 수 없습니다.")
         UUID bookId,
 
-        @NotBlank(message = "사용자 ID는 공백일 수 없습니다.")
+        @NotNull(message = "사용자 ID는 공백일 수 없습니다.")
         UUID userId,
 
         @NotBlank(message = "리뷰 내용은 비어있을 수 없습니다.")
