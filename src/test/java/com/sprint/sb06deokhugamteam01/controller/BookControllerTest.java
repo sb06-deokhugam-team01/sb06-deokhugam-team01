@@ -2,6 +2,7 @@ package com.sprint.sb06deokhugamteam01.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sprint.sb06deokhugamteam01.domain.Book;
 import com.sprint.sb06deokhugamteam01.dto.book.BookDto;
 import com.sprint.sb06deokhugamteam01.dto.book.request.BookCreateRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.request.PagingBookRequest;
@@ -15,12 +16,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockPart;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,13 +44,22 @@ class BookControllerTest {
     private ObjectMapper objectMapper;
     @MockitoBean
     private BookService bookService;
+    BookDto bookDto;
+
 
     @BeforeEach
     void setUp() {
 
-        EasyRandom easyRandom = new EasyRandom();
-
-
+        bookDto = BookDto.builder()
+            .id(UUID.randomUUID())
+            .title("Sample Book Title")
+            .author("Sample Author")
+            .description("Sample Description")
+            .publisher("Sample Publisher")
+            .publishedDate(LocalDate.now())
+            .isbn("1234567890")
+            .thumbnailUrl("http://example.com/thumbnail.jpg")
+            .build();
 
     }
 
@@ -54,23 +69,36 @@ class BookControllerTest {
 
         //given
         EasyRandom easyRandom = new EasyRandom();
-        PagingBookRequest request = easyRandom.nextObject(PagingBookRequest.class);
-        CursorPageResponseBookDto response = easyRandom.nextObject(CursorPageResponseBookDto.class);
+        PagingBookRequest request = PagingBookRequest.builder()
+            .keyword("Java")
+            .orderBy(PagingBookRequest.OrderBy.PUBLISHED_DATE)
+            .direction(PagingBookRequest.SortDirection.DESC)
+            .cursor("")
+            .after(LocalDateTime.now())
+            .limit(10)
+                .build();
+        CursorPageResponseBookDto response = CursorPageResponseBookDto.builder()
+            .content(new ArrayList<>())
+            .nextCursor("next-cursor-value")
+            .nextAfter("next-after-value")
+            .size(10)
+            .totalElements(100)
+                .build();
 
         //when
         when(bookService.getBooksByPage(any(PagingBookRequest.class)))
                 .thenReturn(response);
 
         //then
-        mockMvc.perform(MockMvcRequestBuilders.get("/books")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/books")
                 .param("keyword", request.keyword())
-                .param("orderBy", request.orderBy())
-                .param("direction", request.direction())
+                .param("orderBy", String.valueOf(request.orderBy()))
+                .param("direction", String.valueOf(request.direction()))
                 .param("cursor", request.cursor())
                 .param("after", String.valueOf(request.after()))
                 .param("limit", String.valueOf(request.limit()))
                 )
-            .andExpect(status().isCreated())
+            .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.nextCursor").value(response.getNextCursor()))
                 .andExpect(jsonPath("$.nextAfter").value(response.getNextAfter()))
@@ -85,15 +113,19 @@ class BookControllerTest {
 
         //given
         String invalidLimit = "-5"; // 음수 값은 잘못된 파라미터
-        EasyRandom easyRandom = new EasyRandom();
-        PagingBookRequest request = easyRandom.nextObject(PagingBookRequest.class);
-
+        PagingBookRequest request = PagingBookRequest.builder()
+                .keyword("Java")
+                .orderBy(PagingBookRequest.OrderBy.PUBLISHED_DATE)
+                .direction(PagingBookRequest.SortDirection.DESC)
+                .cursor("")
+                .after(LocalDateTime.now())
+                .build();
 
         //then
         mockMvc.perform(MockMvcRequestBuilders.get("/api/books")
                 .param("keyword", request.keyword())
-                .param("orderBy", request.orderBy())
-                .param("direction", request.direction())
+                .param("orderBy", String.valueOf(request.orderBy()))
+                .param("direction", String.valueOf(request.direction()))
                 .param("cursor", request.cursor())
                 .param("after", String.valueOf(request.after()))
                 .param("limit", String.valueOf(invalidLimit))
@@ -108,20 +140,37 @@ class BookControllerTest {
     void createBook_Success() throws Exception {
 
         //given
-        EasyRandom easyRandom = new EasyRandom();
-        BookCreateRequest bookCreateRequest = easyRandom.nextObject(BookCreateRequest.class);
-        BookDto bookDto = easyRandom.nextObject(BookDto.class);
-        MultipartFile thumbnailImage = null;
+        BookCreateRequest bookCreateRequest = BookCreateRequest.builder()
+                .title("Sample Book Title")
+                .author("Sample Author")
+                .description("Sample Description")
+                .publisher("Sample Publisher")
+                .publishedDate(LocalDate.now())
+                .isbn("1234567890")
+                .build();
+        MockMultipartFile thumbnailImage = new MockMultipartFile(
+            "thumbnailImage",
+            "thumbnail.jpg",
+            MediaType.MULTIPART_FORM_DATA_VALUE,
+            "Sample Image Content".getBytes()
+        );
+        MockMultipartFile bookData = new MockMultipartFile(
+            "bookData",
+            "",
+            "application/json",
+            objectMapper.writeValueAsBytes(bookCreateRequest)
+        );
 
         //when
         when(bookService.createBook(any(BookCreateRequest.class), any(MultipartFile.class)))
             .thenReturn(bookDto);
 
         //then
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/books/")
-                .param("bookData", objectMapper.writeValueAsString(bookCreateRequest))
-                .param("thumbnailImage", String.valueOf(thumbnailImage))
-        )
+        mockMvc.perform(MockMvcRequestBuilders
+                        .multipart("/api/books")
+                        .file(bookData)
+                        .file(thumbnailImage)
+                )
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.id").value(bookDto.id().toString()))
             .andExpect(jsonPath("$.title").value(bookDto.title()))
@@ -144,13 +193,25 @@ class BookControllerTest {
             .isbn("1234567890")
                 .build();
 
-        MultipartFile thumbnailImage = null;
+        MockMultipartFile thumbnailImage = new MockMultipartFile(
+                "thumbnailImage",
+                "thumbnail.jpg",
+                MediaType.MULTIPART_FORM_DATA_VALUE,
+                "Sample Image Content".getBytes()
+        );
+        MockMultipartFile bookData = new MockMultipartFile(
+                "bookData",
+                "",
+                "application/json",
+                objectMapper.writeValueAsBytes(invalidRequest)
+        );
 
         //then
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/books/")
-                .param("bookData", objectMapper.writeValueAsString(invalidRequest))
-                .param("thumbnailImage", String.valueOf(thumbnailImage))
-        )
+        mockMvc.perform(MockMvcRequestBuilders
+                        .multipart("/api/books")
+                        .file(bookData)
+                        .file(thumbnailImage)
+                )
             .andExpect(status().isBadRequest());
 
     }
@@ -160,8 +221,6 @@ class BookControllerTest {
     void getBookById_Success() throws Exception {
 
         //given
-        EasyRandom easyRandom = new EasyRandom();
-        BookDto bookDto = easyRandom.nextObject(BookDto.class);
 
         //when
         when(bookService.getBookById(bookDto.id()))
@@ -182,8 +241,6 @@ class BookControllerTest {
     void getBookById_Fail_NoSuchBook() throws Exception {
 
         //given
-        EasyRandom easyRandom = new EasyRandom();
-        BookDto bookDto = easyRandom.nextObject(BookDto.class);
 
         //when
         when(bookService.getBookById(bookDto.id()))
@@ -213,9 +270,11 @@ class BookControllerTest {
     void getBookByIsbn_Success() throws Exception {
 
         //given
-        EasyRandom easyRandom = new EasyRandom();
-        BookDto bookDto = easyRandom.nextObject(BookDto.class);
-        BookInfo bookInfo = easyRandom.nextObject(BookInfo.class);
+        BookInfo bookInfo = BookInfo.builder()
+            .isbn(bookDto.isbn())
+            .title(bookDto.title())
+            .author(bookDto.author())
+                .build();
 
         //when
         when(bookService.getBookByIsbn(bookDto.isbn()))
@@ -236,8 +295,6 @@ class BookControllerTest {
     void getBookByIsbn_Fail_NoSuchBook() throws Exception {
 
         //given
-        EasyRandom easyRandom = new EasyRandom();
-        BookDto bookDto = easyRandom.nextObject(BookDto.class);
 
         //when
         when(bookService.getBookByIsbn(bookDto.isbn()))
