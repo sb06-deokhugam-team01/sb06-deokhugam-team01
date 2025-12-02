@@ -20,6 +20,8 @@ public interface BookService {
 
     BookDto createBook(BookCreateRequest bookCreateRequest, @Nullable MultipartFile file);
 
+    BookDto createBookByIsbn(String isbn);
+
     BookDto updateBook(UUID id, BookUpdateRequest bookUpdateRequest, @Nullable MultipartFile file);
 
     void deleteBookById(UUID id);

@@ -87,6 +87,11 @@ public class BookServiceImpl implements  BookService {
 
     }
 
+    @Override
+    public BookDto createBookByIsbn(String isbn) {
+        return null;
+    }
+
     @Transactional
     @Override
     public BookDto updateBook(UUID id, BookUpdateRequest bookUpdateRequest, @Nullable MultipartFile file) {
