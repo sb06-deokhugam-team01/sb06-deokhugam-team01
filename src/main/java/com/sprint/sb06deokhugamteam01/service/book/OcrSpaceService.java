@@ -2,14 +2,11 @@ package com.sprint.sb06deokhugamteam01.service.book;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sprint.sb06deokhugamteam01.exception.book.BookInfoFetchFailedException;
-import lombok.Builder;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.web.client.RestClient;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,19 +18,21 @@ public class OcrSpaceService implements OcrService{
     private String apiKey;
 
     @Override
-    public String extractIsbnFromImage(byte[] imageBytes, String fileType) {
+    public String extractIsbnFromImage(byte[] image, String fileType) {
 
         RestClient restClient = RestClient.builder()
                 .baseUrl(ocrSpaceApiEndpoint)
                 .build();
 
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+        bodyBuilder.part("base64Image", "data:image/" + fileType.toLowerCase() + ";base64," +
+                Base64.getEncoder().encodeToString(image));
+        bodyBuilder.part("apikey", apiKey);
+        bodyBuilder.part("filetype", fileType);
+
         OcrResult ocrResult = restClient.post()
                 .header("apikey", apiKey)
-                .body(ApiRequest.builder()
-                        .apiKey(apiKey)
-                        .base64Image("data:image/jpeg;base64," + java.util.Base64.getEncoder().encodeToString(imageBytes))
-                        .fileType(fileType)
-                        .build())
+                .body(bodyBuilder.build())
                 .retrieve()
                 .body(OcrResult.class);
 
@@ -61,15 +60,6 @@ public class OcrSpaceService implements OcrService{
         }
 
         return list.get(0);
-
-    }
-
-    @Builder
-    private record ApiRequest(
-        String apiKey,
-        String base64Image,
-        String fileType
-    ){
 
     }
 

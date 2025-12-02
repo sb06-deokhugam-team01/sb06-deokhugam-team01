@@ -20,5 +20,5 @@ naver:
 ocr:
   space:
     api:
-      endpoint: https://kapi.kakao.com/v1/vision/text/ocr
-      key: ${KAKAO_OCR_ADMIN_KEY}
+      endpoint: https://api.ocr.space/parse/image
+      key: ${OCR_SPACE_API_KEY}
