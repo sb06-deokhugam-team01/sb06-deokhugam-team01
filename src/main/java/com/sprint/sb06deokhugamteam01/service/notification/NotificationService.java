@@ -2,7 +2,6 @@ package com.sprint.sb06deokhugamteam01.service.notification;
 
 import com.sprint.sb06deokhugamteam01.domain.Notification;
 import com.sprint.sb06deokhugamteam01.dto.notification.CursorPageResponseNotificationDto;
-import com.sprint.sb06deokhugamteam01.dto.notification.PageNotificationRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -15,7 +14,11 @@ public interface NotificationService {
     Notification deleteNotification(UUID notificationId);
 
     CursorPageResponseNotificationDto getNotifications(
-        PageNotificationRequest request,
+        UUID userId,
+        String direction,
+        String cursor,
+        LocalDateTime after,
+        Integer limit,
         Pageable pageable
     );
 

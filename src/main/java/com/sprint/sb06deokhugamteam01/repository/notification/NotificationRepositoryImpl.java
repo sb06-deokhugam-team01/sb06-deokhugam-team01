@@ -41,7 +41,10 @@ public class NotificationRepositoryImpl implements NotificationRepositoryCustom 
                 userIdEq(userId),
                 cursorCondition(cursor, after, ascending)
             )
-            .orderBy(n.createdAt.desc(), n.id.desc())
+            .orderBy(
+                createdAtOrder(ascending),
+                idOrder(ascending)
+            )
             .limit(size + 1L)
             .fetch();
 

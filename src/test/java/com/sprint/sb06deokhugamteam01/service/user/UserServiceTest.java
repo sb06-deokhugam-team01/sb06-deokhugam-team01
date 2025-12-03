@@ -12,7 +12,7 @@ import com.sprint.sb06deokhugamteam01.dto.User.request.UserRegisterRequest;
 import com.sprint.sb06deokhugamteam01.exception.common.UnauthorizedAccessException;
 import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
-import com.sprint.sb06deokhugamteam01.repository.user.UserRepository;
+import com.sprint.sb06deokhugamteam01.repository.UserRepository;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.Optional;

@@ -3,7 +3,6 @@ package com.sprint.sb06deokhugamteam01.service.notification;
 import com.sprint.sb06deokhugamteam01.domain.Notification;
 import com.sprint.sb06deokhugamteam01.dto.notification.CursorPageResponseNotificationDto;
 import com.sprint.sb06deokhugamteam01.dto.notification.NotificationDto;
-import com.sprint.sb06deokhugamteam01.dto.notification.PageNotificationRequest;
 import com.sprint.sb06deokhugamteam01.exception.common.UnauthorizedAccessException;
 import com.sprint.sb06deokhugamteam01.exception.notification.NotificationNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.notification.NotificationRepository;
@@ -48,11 +47,11 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public CursorPageResponseNotificationDto getNotifications(PageNotificationRequest request, Pageable pageable) {
-        boolean ascending = request.direction() != null && request.direction().equalsIgnoreCase("ASC");
+    public CursorPageResponseNotificationDto getNotifications(UUID userId, String direction,
+        String cursor, LocalDateTime after, Integer limit, Pageable pageable) {
+        boolean ascending = direction != null && direction.equalsIgnoreCase("ASC");
         Slice<Notification> slice =
-            notificationRepository.getNotifications(request.userId(), request.cursor(), request.after(), ascending,
-                request.limit(), pageable);
+            notificationRepository.getNotifications(userId, cursor, after, ascending, limit, pageable);
 
         List<NotificationDto> content = slice.getContent().stream()
             .map(NotificationDto::fromEntity)

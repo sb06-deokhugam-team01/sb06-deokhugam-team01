@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 import com.sprint.sb06deokhugamteam01.domain.Notification;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.dto.notification.CursorPageResponseNotificationDto;
-import com.sprint.sb06deokhugamteam01.dto.notification.PageNotificationRequest;
 import com.sprint.sb06deokhugamteam01.exception.common.UnauthorizedAccessException;
 import com.sprint.sb06deokhugamteam01.exception.notification.NotificationNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.notification.NotificationRepository;
@@ -148,12 +147,11 @@ class NotificationServiceTest {
 
         SliceImpl<Notification> slice = new SliceImpl<>(List.of(first, second));
 
-        PageNotificationRequest request = new PageNotificationRequest(userId, "DESC", null, null, null);
-
         when(notificationRepository.getNotifications(userId, null, null, false, null, null))
             .thenReturn(slice);
 
-        CursorPageResponseNotificationDto result = target.getNotifications(request, null);
+        CursorPageResponseNotificationDto result =
+            target.getNotifications(userId, "DESC", null, null, null, null);
 
         verify(notificationRepository).getNotifications(userId, null, null, false, null, null);
         assertThat(result.content()).hasSize(2);

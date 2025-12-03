@@ -87,7 +87,7 @@ class BookControllerTest {
 
         //when
         when(bookService.getBooksByPage(any(PagingBookRequest.class)))
-                .thenReturn(response);
+            .thenReturn(response);
 
         //then
         mockMvc.perform(MockMvcRequestBuilders.get("/api/books")
@@ -97,13 +97,13 @@ class BookControllerTest {
                 .param("cursor", request.cursor())
                 .param("after", String.valueOf(request.after()))
                 .param("limit", String.valueOf(request.limit()))
-                )
-            .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.nextCursor").value(response.getNextCursor()))
-                .andExpect(jsonPath("$.nextAfter").value(response.getNextAfter()))
-                .andExpect(jsonPath("$.size").value(response.getSize()))
-                .andExpect(jsonPath("$.totalElements").value(response.getTotalElements()));
+            )
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.content").isArray())
+            .andExpect(jsonPath("$.nextCursor").value(response.getNextCursor()))
+            .andExpect(jsonPath("$.nextAfter").value(response.getNextAfter()))
+            .andExpect(jsonPath("$.size").value(response.getSize()))
+            .andExpect(jsonPath("$.totalElements").value(response.getTotalElements()));
 
     }
 
@@ -129,7 +129,7 @@ class BookControllerTest {
                 .param("cursor", request.cursor())
                 .param("after", String.valueOf(request.after()))
                 .param("limit", String.valueOf(invalidLimit))
-                )
+            )
             .andExpect(status().isBadRequest());
 
 
@@ -187,11 +187,11 @@ class BookControllerTest {
         BookCreateRequest invalidRequest = BookCreateRequest.builder()
             .title("") // 빈 제목은 잘못된 입력 데이터
             .author("Author Name")
-                .description("Description")
-                .publisher("Publisher")
-                .publishedDate(LocalDate.EPOCH)
+            .description("Description")
+            .publisher("Publisher")
+            .publishedDate(LocalDate.EPOCH)
             .isbn("1234567890")
-                .build();
+            .build();
 
         MockMultipartFile thumbnailImage = new MockMultipartFile(
                 "thumbnailImage",
