@@ -8,6 +8,7 @@ import com.sprint.sb06deokhugamteam01.dto.book.response.BookInfo;
 import com.sprint.sb06deokhugamteam01.dto.book.response.CursorPageResponseBookDto;
 import com.sprint.sb06deokhugamteam01.service.book.BookService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ public class BookController {
             @RequestParam String direction,
             @RequestParam (required = false) String cursor,
             @RequestParam (required = false) String after,
-            @RequestParam (required = false, defaultValue = "12") Integer limit
+            @RequestParam (required = false, defaultValue = "12") @Min(1) Integer limit
             ) {
 
         PagingBookRequest request = PagingBookRequest.builder()
