@@ -19,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -317,17 +318,17 @@ class BookServiceImplTest {
     }*/
 
     @Test
-    @DisplayName("createBookByIsbn 성공 테스트")
-    void createBookByIsbn_Success() {
+    @DisplayName("createBookByIsbnImage 성공 테스트")
+    void createBookByIsbnImage_Success() {
 
         //given
         String isbn = "9788966262084";
 
-        when(bookRepository.existsByIsbn(isbn))
-                .thenReturn(false);
-
         when(ocrService.extractIsbnFromImage(any(byte[].class), any(String.class)))
                 .thenReturn(isbn);
+
+        when(bookRepository.existsByIsbn(isbn))
+                .thenReturn(false);
 
         when(bookSearchService.searchBookByIsbn(isbn))
                 .thenReturn(bookDto);
@@ -336,7 +337,7 @@ class BookServiceImplTest {
                 .thenReturn(book);
 
         //when
-        BookDto result = bookService.createBookByIsbn(isbn);
+        BookDto result = bookService.createBookByIsbnImage(new MockMultipartFile("isbnImage.png", new byte[]{}));
 
         //then
         assertNotNull(result);

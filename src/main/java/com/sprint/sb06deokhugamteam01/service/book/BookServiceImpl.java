@@ -8,6 +8,7 @@ import com.sprint.sb06deokhugamteam01.dto.book.request.BookUpdateRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.request.PagingBookRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.response.CursorPageResponseBookDto;
 import com.sprint.sb06deokhugamteam01.exception.book.AlreadyExistsIsbnException;
+import com.sprint.sb06deokhugamteam01.exception.book.InvalidIsbnException;
 import com.sprint.sb06deokhugamteam01.exception.book.NoSuchBookException;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,9 +91,34 @@ public class BookServiceImpl implements  BookService {
 
     }
 
+    @Transactional
     @Override
-    public BookDto createBookByIsbn(String isbn) {
-        return null;
+    public BookDto createBookByIsbnImage(MultipartFile image) {
+
+        String isbn = null;
+        try {
+            isbn = ocrService.extractIsbnFromImage(image.getBytes(), image.getName().split("\\.")[1]);
+        } catch (IOException e) {
+            throw new InvalidIsbnException(new HashMap<>());
+        }
+
+        if (bookRepository.existsByIsbn(isbn) && bookRepository.findByIsbn(isbn).get().isActive()) {
+            throw new AlreadyExistsIsbnException(detailMap("isbn", isbn));
+        }
+
+        BookDto bookDto = bookSearchService.searchBookByIsbn(isbn);
+
+        BookCreateRequest bookCreateRequest = new BookCreateRequest(
+                bookDto.title(),
+                bookDto.author(),
+                bookDto.description(),
+                bookDto.publisher(),
+                bookDto.publishedDate(),
+                bookDto.isbn()
+        );
+
+        return BookDto.fromEntity(bookRepository.save(BookCreateRequest.fromDto(bookCreateRequest)));
+
     }
 
     @Transactional
