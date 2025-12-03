@@ -31,6 +31,8 @@ public class BookServiceImpl implements  BookService {
     private final BookRepository bookRepository;
     private final CommentRepository commentRepository;
     private final ReviewRepository reviewRepository;
+    private final BookSearchService bookSearchService;
+    private final OcrService ocrService;
 
     @Override
     public BookDto getBookById(UUID id) {

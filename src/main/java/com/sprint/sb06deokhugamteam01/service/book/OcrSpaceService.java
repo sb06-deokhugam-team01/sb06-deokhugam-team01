@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sprint.sb06deokhugamteam01.exception.book.BookInfoFetchFailedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Service
 public class OcrSpaceService implements OcrService{
 
     @Value("${ocr.space.api.endpoint}")
