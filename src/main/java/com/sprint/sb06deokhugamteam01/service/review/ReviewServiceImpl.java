@@ -8,6 +8,7 @@ import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.dto.review.*;
 import com.sprint.sb06deokhugamteam01.exception.book.NoSuchBookException;
+import com.sprint.sb06deokhugamteam01.exception.review.InvalidReviewCursorException;
 import com.sprint.sb06deokhugamteam01.exception.review.ReviewAlreadyExistsException;
 import com.sprint.sb06deokhugamteam01.exception.review.ReviewNotFoundException;
 import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
@@ -112,6 +114,27 @@ public class ReviewServiceImpl implements ReviewService {
         boolean ascending = (sortDirection == CursorPageReviewRequest.SortDirection.ASC);
         boolean useRating = (sortField == CursorPageReviewRequest.SortField.rating);
 
+        // 커서 유효성 검증
+        String cursor = request.cursor();
+        if (cursor != null && !cursor.isEmpty()) {
+            if (useRating) {
+                try {
+                    long longCursor = Long.parseLong(request.cursor());
+                    if (longCursor < 1 || longCursor > 5) {
+                        throw new InvalidReviewCursorException(detailMap("cursor", request.cursor()));
+                    }
+                } catch (NumberFormatException e) {
+                    throw new InvalidReviewCursorException(detailMap("cursor", request.cursor()));
+                }
+            } else {
+                try {
+                    LocalDateTime.parse(cursor);
+                } catch (DateTimeParseException parseException){
+                    throw new InvalidReviewCursorException(detailMap("cursor", cursor));
+                }
+            }
+        }
+
         // 커서 페이징 설정
         Pageable pageable = PageRequest.of(0, limit);
 
@@ -164,6 +187,18 @@ public class ReviewServiceImpl implements ReviewService {
 
         User user = userRepository.findById(requestUserId)
                 .orElseThrow(() -> new UserNotFoundException(detailMap("userId", requestUserId)));
+
+        // 커서 유효성 검증
+        if (request.cursor() != null && !request.cursor().isEmpty()) {
+
+            try {
+                if (Long.parseLong(request.cursor()) < 0) {
+                    throw new InvalidReviewCursorException(detailMap("cursor", request.cursor()));
+                }
+            } catch (NumberFormatException e) {
+                throw new InvalidReviewCursorException(detailMap("cursor", request.cursor()));
+            }
+        }
 
         // 기본값 처리
         int limit = request.limit() != null

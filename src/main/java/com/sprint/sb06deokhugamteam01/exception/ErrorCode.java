@@ -7,15 +7,16 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ErrorCode {
 
-    ALREADY_EXISTS_ISBN("All ready exists ISBN", 400, "B002"),
+    ALREADY_EXISTS_ISBN("Already exists ISBN", 400, "B002"),
     BOOK_INFO_FETCH_FAILED("Book info fetch failed", 500, "B003"),
     INVALID_ISBN("Invalid ISBN", 400, "B004"),
     // S3_UPLOAD_FAILED("S3 upload failed", 500, "COM003"),
     USER_NOT_FOUND("User not found", 404, "U001"),
     INVALID_USER("Invalid user", 400, "U002"),
 
-    REVIEW_NOT_FOUND("Review not found", 404, "R001"),
-    REVIEW_ALREADY_EXISTS("Review already exists", 409, "R002"),
+    REVIEW_NOT_FOUND("Review did not found.", 404, "R001"),
+    REVIEW_ALREADY_EXISTS("Review already exists.", 409, "R002"),
+    INVALID_REVIEW_CURSOR("Review cursor is not valid.", 400, "R003"),
 
     COMMENT_NOT_FOUND("존재하지 않는 댓글입니다.", 404, "C001"),
     COMMENT_ACCESS_DENIED("해당 댓글에 대한 권한이 없습니다.", 403, "C002"),

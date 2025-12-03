@@ -8,6 +8,9 @@ import com.sprint.sb06deokhugamteam01.repository.review.ReviewLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+/**
+ * DTO의 from()만으로는 리포지토리 접근이 어려우므로 Mapper로 분리
+ */
 @Component
 @RequiredArgsConstructor
 public class ReviewMapper {

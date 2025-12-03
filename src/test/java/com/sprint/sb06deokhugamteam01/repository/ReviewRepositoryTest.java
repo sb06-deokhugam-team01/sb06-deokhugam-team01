@@ -7,6 +7,7 @@ import com.sprint.sb06deokhugamteam01.domain.review.PopularReviewSearchCondition
 import com.sprint.sb06deokhugamteam01.domain.review.Review;
 import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.dto.review.CursorPagePopularReviewRequest;
+import com.sprint.sb06deokhugamteam01.exception.review.InvalidReviewCursorException;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -297,25 +298,6 @@ class ReviewRepositoryTest {
         assertThat(slice.getContent()).extracting("id")
                 .containsExactly(testReview2.getId());
         assertThat(slice.hasNext()).isTrue();
-    }
-
-    @Test
-    @DisplayName("인기 리뷰 다건 조회 실패 - 커서 형식 오류")
-    void getPopularReviews_failure_invalid_cursor() {
-        // given
-        Pageable pageable = PageRequest.ofSize(1);
-        PopularReviewSearchCondition condition = PopularReviewSearchCondition.builder()
-                .period(CursorPagePopularReviewRequest.RankCriteria.ALL_TIME)
-                .descending(true)
-                .cursor("string") // 점수가 아닌 문자열
-                .after(testReview1.getCreatedAt())
-                .limit(1)
-                .build();
-
-        // when & then
-        assertThrows(InvalidDataAccessApiUsageException.class, () -> { // TODO 커스텀예외 사용
-            reviewRepository.getPopularReviews(condition, pageable);
-        });
     }
 
 }

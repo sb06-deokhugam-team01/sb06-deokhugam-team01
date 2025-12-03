@@ -6,6 +6,7 @@ import com.sprint.sb06deokhugamteam01.domain.review.Review;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.dto.review.*;
+import com.sprint.sb06deokhugamteam01.exception.review.InvalidReviewCursorException;
 import com.sprint.sb06deokhugamteam01.exception.review.ReviewNotFoundException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.mapper.ReviewMapper;
@@ -34,6 +35,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -296,6 +298,23 @@ class ReviewServiceTest {
     }
 
     @Test
+    @DisplayName("getReviews 메서드는 커서 형식에 오류가 있으면 InvalidReviewCursorException를 던진다.")
+    void getReviews_실패_커서_오류(){
+
+        // given
+        CursorPageReviewRequest request = CursorPageReviewRequest.builder()
+                .cursor("string") // 생성시간도, 평점도 아닌 값이 들어옴
+                .build();
+
+        when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.getReviews(request, requestUserId))
+                .isInstanceOf(InvalidReviewCursorException.class);
+        verify(reviewRepository, never()).getPopularReviews(any(), any());
+    }
+
+    @Test
     @DisplayName("getPopularReviews 메서드는 유효한 요청으로 호출 시 CursorPageResponsePopularReviewDto를 반환한다.")
     void getPopularReviews_성공_첫_페이지_조회() {
 
@@ -337,6 +356,26 @@ class ReviewServiceTest {
                 any(PopularReviewSearchCondition.class),
                 any(Pageable.class)
         );
+    }
+
+    @Test
+    @DisplayName("getPopularReviews 메서드는 커서 형식에 오류가 있으면 InvalidReviewCursorException를 던진다.")
+    void getPopularReviews_실페_커서_오류() {
+
+        // given
+        CursorPagePopularReviewRequest request = CursorPagePopularReviewRequest.builder()
+                .direction(CursorPagePopularReviewRequest.SortDirection.DESC)
+                .cursor("string") // 점수가 아닌 문자열
+                .after(testReview.getCreatedAt())
+                .limit(10)
+                .build();
+
+        when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.getPopularReviews(request, requestUserId))
+                .isInstanceOf(InvalidReviewCursorException.class);
+        verify(reviewRepository, never()).getPopularReviews(any(), any());
     }
 
     @Test
