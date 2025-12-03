@@ -1,5 +1,6 @@
 package com.sprint.sb06deokhugamteam01.dto.book.request;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -17,7 +18,7 @@ public record PagingBookRequest(
      SortDirection direction,
      String cursor,
      LocalDateTime after,
-     @PositiveOrZero(message = "limit는 0 이상의 정수여야 합니다.")
+     @Min(value = 1, message = "limit는 최소 1 이상이어야 합니다.")
      Integer limit
 ) {
 
