@@ -1,7 +1,7 @@
 package com.sprint.sb06deokhugamteam01.service.book;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sprint.sb06deokhugamteam01.exception.book.BookInfoFetchFailedException;
+import com.sprint.sb06deokhugamteam01.exception.book.OcrProcessingException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,7 @@ public class OcrSpaceService implements OcrService{
         if (ocrResult != null && ocrResult.parsedResults.length > 0) {
             return parseIsbnFromOcrResult(ocrResult.parsedResults[0].parsedText);
         } else {
-            throw new BookInfoFetchFailedException(detailMap("message", "OCR processing failed or returned no results."));
+            throw new OcrProcessingException(detailMap("message", "OCR processing failed or returned no results."));
         }
     }
 
@@ -58,7 +58,7 @@ public class OcrSpaceService implements OcrService{
         }
 
         if (list.isEmpty()) {
-            throw new BookInfoFetchFailedException(detailMap("message", "No ISBN found in OCR result."));
+            throw new OcrProcessingException(detailMap("message", "No ISBN found in OCR result."));
         }
 
         return list.get(0);
