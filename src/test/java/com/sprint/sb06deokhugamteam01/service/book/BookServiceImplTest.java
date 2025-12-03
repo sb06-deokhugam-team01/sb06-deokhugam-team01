@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -232,6 +233,9 @@ class BookServiceImplTest {
         when(bookRepository.existsByIsbn(bookCreateRequest.isbn()))
                 .thenReturn(true);
 
+        when(bookRepository.findByIsbn(bookCreateRequest.isbn()))
+                .thenReturn(Optional.of(book));
+
         //when
         AlreadyExistsIsbnException exception = assertThrows(AlreadyExistsIsbnException.class, () -> {
             bookService.createBook(bookCreateRequest, null);
@@ -239,56 +243,6 @@ class BookServiceImplTest {
 
         //then
         assertEquals("All ready exists ISBN", exception.getMessage());
-
-    }
-
-    //외부 api 테스트이므로 현재는 실패
-    @Test
-    @DisplayName("createBook 실패 테스트 - 잘못된 ISBN")
-    void createBook_Fail_InvalidIsbn() {
-
-        //given
-        BookCreateRequest bookCreateRequest = new BookCreateRequest(
-                "9788966262084",
-                "테스트 도서",
-                "테스트 저자",
-                "테스트 출판사",
-                LocalDate.now(),
-                "sdfadsfadsf"
-        );
-
-        //when
-        InvalidIsbnException exception = assertThrows(InvalidIsbnException.class, () -> {
-            bookService.createBook(bookCreateRequest, null);
-        });
-
-        //then
-        assertEquals("유효하지 않은 ISBN 입니다.", exception.getMessage());
-
-    }
-
-    //외부 api 테스트이므로 현재는 실패
-    @Test
-    @DisplayName("createBook 실패 테스트 - 도서 정보 조회 불가")
-    void createBook_Fail_CannotFetchBookInfo() {
-
-        //given
-        BookCreateRequest bookCreateRequest = new BookCreateRequest(
-                "9788966262084",
-                "테스트 도서",
-                "테스트 저자",
-                "테스트 출판사",
-                LocalDate.now(),
-                "sdfadsfadsf"
-        );
-
-        //when
-        BookInfoFetchFailedException exception = assertThrows(BookInfoFetchFailedException.class, () -> {
-            bookService.createBook(bookCreateRequest, null);
-        });
-
-        //then
-        assertEquals("도서 정보를 조회할 수 없습니다.", exception.getMessage());
 
     }
 
@@ -342,6 +296,32 @@ class BookServiceImplTest {
         //then
         assertNotNull(result);
         assertEquals(book.getIsbn(), result.isbn());
+
+    }
+
+    @Test
+    @DisplayName("createBookByIsbnImage 실패 테스트 - 이미 존재하는 ISBN")
+    void createBookByIsbnImage_Fail_AllReadyExistsIsbn() {
+
+        //given
+        String isbn = "9788966262084";
+
+        when(ocrService.extractIsbnFromImage(any(byte[].class), any(String.class)))
+                .thenReturn(isbn);
+
+        when(bookRepository.existsByIsbn(isbn))
+                .thenReturn(true);
+
+        when(bookRepository.findByIsbn(isbn))
+                .thenReturn(Optional.of(book));
+
+        //when
+        AlreadyExistsIsbnException exception = assertThrows(AlreadyExistsIsbnException.class, () -> {
+            bookService.createBookByIsbnImage(new MockMultipartFile("isbnImage.png", new byte[]{}));
+        });
+
+        //then
+        assertEquals("All ready exists ISBN", exception.getMessage());
 
     }
 
