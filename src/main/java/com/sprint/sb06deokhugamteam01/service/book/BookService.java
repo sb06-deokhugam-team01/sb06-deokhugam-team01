@@ -20,7 +20,7 @@ public interface BookService {
 
     BookDto createBook(BookCreateRequest bookCreateRequest, @Nullable MultipartFile file);
 
-    BookDto createBookByIsbn(String isbn);
+    BookDto createBookByIsbnImage(MultipartFile image);
 
     BookDto updateBook(UUID id, BookUpdateRequest bookUpdateRequest, @Nullable MultipartFile file);
 
