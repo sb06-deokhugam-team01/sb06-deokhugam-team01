@@ -1,4 +1,4 @@
-package com.sprint.sb06deokhugamteam01.dto;
+package com.sprint.sb06deokhugamteam01.dto.comment;
 
 import com.sprint.sb06deokhugamteam01.domain.Comment;
 import lombok.Builder;

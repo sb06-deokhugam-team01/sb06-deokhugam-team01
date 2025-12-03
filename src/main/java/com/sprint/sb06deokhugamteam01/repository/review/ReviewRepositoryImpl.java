@@ -3,9 +3,10 @@ package com.sprint.sb06deokhugamteam01.repository.review;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.sprint.sb06deokhugamteam01.domain.review.QReview;
 import com.sprint.sb06deokhugamteam01.domain.review.PopularReviewSearchCondition;
+import com.sprint.sb06deokhugamteam01.domain.review.QReview;
 import com.sprint.sb06deokhugamteam01.domain.review.Review;
 import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.dto.review.CursorPagePopularReviewRequest;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,14 +26,14 @@ import org.springframework.stereotype.Repository;
 public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
-    private final QReview r = QReview.review;
+    private final QReview qReview = QReview.review;
 
     @Override
     public Slice<Review> getReviews(ReviewSearchCondition condition, Pageable pageable) {
 
         Integer limit = condition.limit();
         List<Review> results = queryFactory
-                .selectFrom(r)
+                .selectFrom(qReview)
                 .where(
                         // 커서 조건
                         cursorCondition(
@@ -44,7 +46,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                         bookIdEq(condition.bookId()),
                         keywordContains(condition.keyword()),
                         // soft delete 고려
-                        r.isActive.isTrue()
+                        qReview.isActive.isTrue()
                 )
                 .orderBy(
                         // 주 정렬 조건
@@ -79,22 +81,22 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         if (useRating) {
             // rating 기준
             if (ascending) { // ASC: rating이 커지거나 (같으면) createdAt이 커지는 경우
-                return r.rating.gt(Integer.parseInt(cursor)) // gt = greater than
+                return qReview.rating.gt(Integer.parseInt(cursor)) // gt = greater than
                         .or(
-                                r.rating.eq(Integer.parseInt(cursor)).and(r.createdAt.gt(after))
+                                qReview.rating.eq(Integer.parseInt(cursor)).and(qReview.createdAt.gt(after))
                         );
             } else { // DESC: rating이 작아지거나 (같으면) createdAt이 작아지는 경우
-                return r.rating.lt(Integer.parseInt(cursor)) // lt = less than
+                return qReview.rating.lt(Integer.parseInt(cursor)) // lt = less than
                         .or(
-                                r.rating.eq(Integer.parseInt(cursor)).and(r.createdAt.lt(after))
+                                qReview.rating.eq(Integer.parseInt(cursor)).and(qReview.createdAt.lt(after))
                         );
             }
         } else {
             // createdAt 기준
             if (ascending) { // ASC: createdAt이 커지는 경우 (오래된순)
-                return r.createdAt.gt(after);
+                return qReview.createdAt.gt(after);
             } else { // DESC: createdAt이 작아지는 경우 (최신순)
-                return r.createdAt.lt(after);
+                return qReview.createdAt.lt(after);
             }
         }
     }
@@ -102,12 +104,12 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
     // 작성자 ID 완전 일치 조건
     private Predicate userIdEq(UUID userId) {
-        return userId != null ? r.user.id.eq(userId) : null;
+        return userId != null ? qReview.user.id.eq(userId) : null;
     }
 
     // 도서 ID 완전 일치 조건
     private Predicate bookIdEq(UUID bookId) {
-        return bookId != null ? r.book.id.eq(bookId) : null;
+        return bookId != null ? qReview.book.id.eq(bookId) : null;
     }
 
     // keyword - 도서명, 리뷰 내용, 리뷰작성자 닉네임 부분 일치 조건
@@ -115,10 +117,10 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         if (keyword == null || keyword.isEmpty()) {
             return null;
         }
-        return r.content.containsIgnoreCase(keyword)
-                .or(r.user.nickname.containsIgnoreCase(keyword))
-                .or(r.book.title.containsIgnoreCase(keyword));
-    } 
+        return qReview.content.containsIgnoreCase(keyword)
+                .or(qReview.user.nickname.containsIgnoreCase(keyword))
+                .or(qReview.book.title.containsIgnoreCase(keyword));
+    }
 
     /**
      * orderBy 절 OrderSpecifier 생성 메서드들
@@ -129,17 +131,19 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         Order order = ascending ? Order.ASC : Order.DESC;
 
         if (useRating) {
-            return new OrderSpecifier<>(order, r.rating);
+            return new OrderSpecifier<>(order, qReview.rating);
         } else {
-            return new OrderSpecifier<>(order, r.createdAt);
+            return new OrderSpecifier<>(order, qReview.createdAt);
         }
     }
 
     // 보조 정렬 조건 (Tie-breaker): ID를 기준으로 정렬
     private OrderSpecifier<?> getTieBreakerOrder(boolean ascending) {
         Order order = ascending ? Order.ASC : Order.DESC;
-        return new OrderSpecifier<>(order, r.id);
+        return new OrderSpecifier<>(order, qReview.id);
     }
+
+
 
 
     @Override
@@ -147,9 +151,10 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
         Integer limit = condition.limit();
         boolean descending = condition.descending();
+        NumberExpression<Double> scoreExpression = getScoreExpression();
 
         List<Review> results = queryFactory
-                .selectFrom(r)
+                .selectFrom(qReview)
                 .where(
                         // 1. 기간 필터링 (DAILY, WEEKLY 등)
                         periodCondition(condition.period()),
@@ -157,16 +162,17 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                         popularCursorCondition(
                                 condition.cursor(),
                                 condition.after(),
-                                descending
-                                ),
+                                descending,
+                                scoreExpression
+                        ),
                         // 3. isActive 조건 (Soft Delete 처리 가정)
-                        r.isActive.isTrue()
+                        qReview.isActive.isTrue()
                 )
                 // 4. 정렬 조건 (likeCount -> createdAt)
                 .orderBy(
-                        getPrimaryOrderSpecifier(descending),
+                        getPrimaryOrderSpecifier(descending, scoreExpression),
                         getSecondaryOrderSpecifier(descending)
-                        )
+                )
                 .limit(limit + 1)
                 .fetch();
 
@@ -180,7 +186,17 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     }
 
     /**
-    where절 Predicate 생성 메서드들
+     * likeCount와 commentCount를 Double로 변환하여 점수 계산
+     */
+    private NumberExpression<Double> getScoreExpression() {
+
+        // null 값 안전을 위해 coalesce(0)을 적용
+        return qReview.likeCount.coalesce(0).doubleValue().multiply(0.3)
+                .add(qReview.commentCount.coalesce(0).doubleValue().multiply(0.7));
+    }
+
+    /**
+     where절 Predicate 생성 메서드들
      */
     // 기간에 따른 createdAt 필터링 조건 생성
     private Predicate periodCondition(CursorPagePopularReviewRequest.RankCriteria period) {
@@ -203,50 +219,52 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 return null;
         }
         // startDateTime 이후에 생성된 리뷰만 포함
-        return r.createdAt.goe(startDateTime); // goe = greater or equal
+        return qReview.createdAt.goe(startDateTime); // goe = greater or equal
     }
 
     // 인기 순위 커서 조건 (likeCount와 createdAt 조합)
-    private Predicate popularCursorCondition(String cursor, LocalDateTime after, boolean descending) {
+    private Predicate popularCursorCondition(
+            String cursor,
+            LocalDateTime after,
+            boolean descending,
+            NumberExpression<Double> scoreExpression
+    ) {
         if (cursor == null) {
             return null; // 첫 페이지 조회
         }
 
         try {
-            Integer cursorLikeCount = Integer.parseInt(cursor);
+            Double cursorScore = Double.parseDouble(cursor);
 
             if (descending) {
-                // DESC: likeCount < cursor OR (likeCount == cursor AND createdAt < after)
-                return r.likeCount.lt(cursorLikeCount)
+                return scoreExpression.lt(cursorScore)
                         .or(
-                                r.likeCount.eq(cursorLikeCount).and(r.createdAt.lt(after))
+                                scoreExpression.eq(cursorScore).and(qReview.createdAt.lt(after))
                         );
             } else {
-                // ASC: likeCount > cursor OR (likeCount == cursor AND createdAt > after)
-                return r.likeCount.gt(cursorLikeCount)
+                return scoreExpression.gt(cursorScore)
                         .or(
-                                r.likeCount.eq(cursorLikeCount).and(r.createdAt.gt(after))
+                                scoreExpression.eq(cursorScore).and(qReview.createdAt.gt(after))
                         );
             }
         } catch (NumberFormatException e) {
-            // 커서가 유효한 정수가 아닐 경우 예외 처리
             // TODO 커스텀 예외로 대체
             throw new IllegalArgumentException("유효하지 않은 커서 형식입니다: " + cursor);
         }
     }
 
     /**
-    OrderSpecifier 생성 메서드
+     OrderSpecifier 생성 메서드
      */
     // 주 정렬 조건 (Primary)
-    private OrderSpecifier<?> getPrimaryOrderSpecifier(boolean descending) {
+    private OrderSpecifier<?> getPrimaryOrderSpecifier(boolean descending, NumberExpression<Double> scoreExpression) {
         Order order = descending ? Order.DESC : Order.ASC;
-        return new OrderSpecifier<>(order, r.likeCount);
+        return new OrderSpecifier<>(order, scoreExpression);
     }
 
     // 보조 정렬 조건 (Secondary/Tie-breaker)
     private OrderSpecifier<?> getSecondaryOrderSpecifier(boolean descending) {
         Order order = descending ? Order.DESC : Order.ASC;
-        return new OrderSpecifier<>(order, r.createdAt);
+        return new OrderSpecifier<>(order, qReview.createdAt);
     }
 }

@@ -5,6 +5,7 @@ import com.sprint.sb06deokhugamteam01.domain.review.Review;
 import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.stereotype.Repository;
 
 public interface ReviewRepositoryCustom {
 

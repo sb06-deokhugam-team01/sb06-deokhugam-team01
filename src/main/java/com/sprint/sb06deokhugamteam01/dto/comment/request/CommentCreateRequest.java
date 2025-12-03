@@ -1,4 +1,4 @@
-package com.sprint.sb06deokhugamteam01.dto;
+package com.sprint.sb06deokhugamteam01.dto.comment.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

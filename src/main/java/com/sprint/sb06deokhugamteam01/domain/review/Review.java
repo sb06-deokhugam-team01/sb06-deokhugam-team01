@@ -34,7 +34,8 @@ public class Review {
 
     private int rating;
 
-    @Lob
+//    @Lob
+    @Column(length = 4000)
     private String content;
 
     private int likeCount;

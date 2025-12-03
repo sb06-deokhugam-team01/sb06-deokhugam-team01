@@ -26,16 +26,18 @@ public class ReviewController {
     }
 
     @GetMapping("/{reviewId}")
-    public ResponseEntity<ReviewDto> getReview(@PathVariable UUID reviewId,
-                                               @RequestHeader UUID requestUserId) {
+    public ResponseEntity<ReviewDto> getReview(
+            @PathVariable UUID reviewId,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
+    ) {
         return ResponseEntity
                 .ok(reviewService.getReview(reviewId, requestUserId));
     }
 
     @GetMapping
     public ResponseEntity<CursorPageResponseReviewDto> getReviews(
-            @ModelAttribute CursorPageReviewRequest request,
-            @RequestHeader UUID requestUserId
+            @ModelAttribute @Valid CursorPageReviewRequest request,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
     ) {
         return ResponseEntity
                 .ok(reviewService.getReviews(request, requestUserId));
@@ -43,40 +45,47 @@ public class ReviewController {
 
     @GetMapping("/popular")
     public ResponseEntity<CursorPageResponsePopularReviewDto> getPopularReviews(
-            @ModelAttribute CursorPagePopularReviewRequest request,
-            @RequestHeader UUID requestUserId
+            @ModelAttribute @Valid CursorPagePopularReviewRequest request,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
     ) {
         return ResponseEntity
                 .ok(reviewService.getPopularReviews(request, requestUserId));
     }
 
     @PatchMapping("/{reviewId}")
-    public ResponseEntity<ReviewDto> updateReview(@PathVariable UUID reviewId,
-                                                  @RequestBody @Valid ReviewUpdateRequest updateRequest,
-                                                  @RequestHeader UUID requestUserId) {
+    public ResponseEntity<ReviewDto> updateReview(
+            @PathVariable UUID reviewId,
+            @RequestBody @Valid ReviewUpdateRequest updateRequest,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
+    ) {
         return ResponseEntity
                 .ok(reviewService.updateReview(reviewId, updateRequest, requestUserId));
     }
 
     @PostMapping("/{reviewId}/like")
-    public ResponseEntity<ReviewLikeDto> likeReview(@PathVariable UUID reviewId,
-                                                    @RequestHeader UUID requestUserId) {
+    public ResponseEntity<ReviewLikeDto> likeReview(
+            @PathVariable UUID reviewId,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
+    ) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(reviewService.likeReview(reviewId, requestUserId));
     }
 
     @DeleteMapping("/{reviewId}")
-    public ResponseEntity<Void> deleteReview(@PathVariable UUID reviewId,
-                                             @RequestHeader UUID requestUserId) {
+    public ResponseEntity<Void> deleteReview(
+            @PathVariable UUID reviewId,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
         reviewService.deleteReview(reviewId, requestUserId);
         return ResponseEntity
                 .noContent().build();
     }
 
     @DeleteMapping("/{reviewId}/hard")
-    public ResponseEntity<Void> hardDeleteReview(@PathVariable UUID reviewId,
-                                                 @RequestHeader UUID requestUserId) {
+    public ResponseEntity<Void> hardDeleteReview(
+            @PathVariable UUID reviewId,
+            @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
+    ) {
         reviewService.hardDeleteReview(reviewId, requestUserId);
         return ResponseEntity
                 .noContent().build();
