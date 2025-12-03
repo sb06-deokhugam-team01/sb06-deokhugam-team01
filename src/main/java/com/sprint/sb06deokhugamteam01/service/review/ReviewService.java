@@ -23,6 +23,6 @@ public interface ReviewService {
 
     void hardDeleteReview(UUID reviewId, UUID requestUserId);
 
-    ReviewLikeDto likeReview(UUID reviewId, UUID requestUserId);
+    ReviewLikeDto likeReviewToggle(UUID reviewId, UUID requestUserId);
 
 }

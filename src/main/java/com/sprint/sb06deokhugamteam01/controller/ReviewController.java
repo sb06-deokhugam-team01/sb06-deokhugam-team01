@@ -4,25 +4,30 @@ import com.sprint.sb06deokhugamteam01.dto.review.*;
 import com.sprint.sb06deokhugamteam01.service.review.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewController {
 
     private final ReviewService reviewService;
 
     @PostMapping
     public ResponseEntity<ReviewDto> createReview(@RequestBody @Valid ReviewCreateRequest request) {
-
+        log.info("Request to create review: {}", request);
+        ReviewDto response = reviewService.createReview(request);
+        log.info("Review created: {}", response);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(reviewService.createReview(request));
+                .body(response);
     }
 
     @GetMapping("/{reviewId}")
@@ -30,8 +35,11 @@ public class ReviewController {
             @PathVariable UUID reviewId,
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
     ) {
+        log.info("Request to get single review: {}", reviewId);
+        ReviewDto response = reviewService.getReview(reviewId, requestUserId);
+        log.info("Review get: {}", response);
         return ResponseEntity
-                .ok(reviewService.getReview(reviewId, requestUserId));
+                .ok(response);
     }
 
     @GetMapping
@@ -39,8 +47,10 @@ public class ReviewController {
             @ModelAttribute @Valid CursorPageReviewRequest request,
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
     ) {
-        return ResponseEntity
-                .ok(reviewService.getReviews(request, requestUserId));
+        log.info("Request to get reviews: {}", requestUserId);
+        CursorPageResponseReviewDto response = reviewService.getReviews(request, requestUserId);
+        log.info("Reviews: {}", response);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/popular")
@@ -48,8 +58,10 @@ public class ReviewController {
             @ModelAttribute @Valid CursorPagePopularReviewRequest request,
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
     ) {
-        return ResponseEntity
-                .ok(reviewService.getPopularReviews(request, requestUserId));
+        log.info("Request to get popular reviews: {}", requestUserId);
+        CursorPageResponsePopularReviewDto response = reviewService.getPopularReviews(request, requestUserId);
+        log.info("Popular reviews: {}", response);
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{reviewId}")
@@ -58,25 +70,33 @@ public class ReviewController {
             @RequestBody @Valid ReviewUpdateRequest updateRequest,
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
     ) {
+        log.info("Request to update review: {}", reviewId);
+        ReviewDto response = reviewService.updateReview(reviewId, updateRequest, requestUserId);
+        log.info("Review updated: {}", response);
         return ResponseEntity
-                .ok(reviewService.updateReview(reviewId, updateRequest, requestUserId));
+                .ok(response);
     }
 
     @PostMapping("/{reviewId}/like")
-    public ResponseEntity<ReviewLikeDto> likeReview(
+    public ResponseEntity<ReviewLikeDto> likeReviewToggle(
             @PathVariable UUID reviewId,
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
     ) {
+        log.info("Request to like/cancel review: {}", reviewId);
+        ReviewLikeDto response = reviewService.likeReviewToggle(reviewId, requestUserId);
+        log.info("Liked/Canceled review: {}", response);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(reviewService.likeReview(reviewId, requestUserId));
+                .body(response);
     }
 
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<Void> deleteReview(
             @PathVariable UUID reviewId,
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId) {
+        log.info("Request to delete review: {}", reviewId);
         reviewService.deleteReview(reviewId, requestUserId);
+        log.info("Review deleted: {}", reviewId);
         return ResponseEntity
                 .noContent().build();
     }
@@ -86,7 +106,9 @@ public class ReviewController {
             @PathVariable UUID reviewId,
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
     ) {
+        log.info("Request to hard delete review: {}", reviewId);
         reviewService.hardDeleteReview(reviewId, requestUserId);
+        log.info("Review hard deleted: {}", reviewId);
         return ResponseEntity
                 .noContent().build();
     }

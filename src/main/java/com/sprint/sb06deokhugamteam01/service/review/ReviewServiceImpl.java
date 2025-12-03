@@ -326,7 +326,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public ReviewLikeDto likeReview(UUID reviewId, UUID requestUserId) {
+    public ReviewLikeDto likeReviewToggle(UUID reviewId, UUID requestUserId) {
 
         User user = userRepository.findById(requestUserId)
                 .orElseThrow(() -> new UserNotFoundException(detailMap("userId", requestUserId)));
