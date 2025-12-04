@@ -295,7 +295,7 @@ class ReviewControllerTest {
                 .liked(true)
                 .build();
 
-        given(reviewService.likeReview(eq(reviewId), eq(requestUserId)))
+        given(reviewService.likeReviewToggle(eq(reviewId), eq(requestUserId)))
                 .willReturn(response);
 
         // when & then
@@ -307,7 +307,7 @@ class ReviewControllerTest {
                 .andExpect(jsonPath("$.reviewId").value(reviewId.toString()))
                 .andExpect(jsonPath("$.liked").value(true));
 
-        verify(reviewService).likeReview(reviewId, requestUserId);
+        verify(reviewService).likeReviewToggle(reviewId, requestUserId);
     }
 
     @Test

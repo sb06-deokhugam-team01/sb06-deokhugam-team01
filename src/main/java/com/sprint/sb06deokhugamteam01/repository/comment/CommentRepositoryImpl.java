@@ -6,7 +6,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sprint.sb06deokhugamteam01.domain.Comment;
 import com.sprint.sb06deokhugamteam01.domain.QComment;
 import com.sprint.sb06deokhugamteam01.domain.QUser;
-import com.sprint.sb06deokhugamteam01.domain.review.QReview;
+import com.sprint.sb06deokhugamteam01.domain.QReview;
 import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentSearchCondition;
 import com.sprint.sb06deokhugamteam01.dto.comment.response.CommentSliceResult;
 import lombok.RequiredArgsConstructor;

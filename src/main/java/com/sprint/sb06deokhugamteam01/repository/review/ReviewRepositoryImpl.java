@@ -6,7 +6,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sprint.sb06deokhugamteam01.dto.review.PopularReviewSearchCondition;
-import com.sprint.sb06deokhugamteam01.domain.review.QReview;
+import com.sprint.sb06deokhugamteam01.domain.QReview;
 import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.dto.review.ReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.dto.review.request.CursorPagePopularReviewRequest;

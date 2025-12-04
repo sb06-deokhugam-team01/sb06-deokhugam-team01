@@ -415,11 +415,11 @@ class ReviewServiceTest {
     void deleteReview_성공(){
 
         // given
-        when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(testReview));
 
         // when
-        reviewService.deleteReview(reviewId, requestUserId);
+        reviewService.deleteReview(reviewId, userId);
 
         // then
         assertThat(testReview.isActive()).isFalse();
@@ -479,7 +479,7 @@ class ReviewServiceTest {
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(testReview));
 
         // when
-        ReviewLikeDto response = reviewService.likeReview(reviewId, requestUserId);
+        ReviewLikeDto response = reviewService.likeReviewToggle(reviewId, requestUserId);
 
         // then
         assertThat(response).isNotNull();
@@ -499,7 +499,7 @@ class ReviewServiceTest {
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty()); // 리뷰 없음
 
         // when & then
-        assertThatThrownBy(() -> reviewService.likeReview(reviewId, requestUserId))
+        assertThatThrownBy(() -> reviewService.likeReviewToggle(reviewId, requestUserId))
                 .isInstanceOf(ReviewNotFoundException.class);
 
         verify(reviewRepository, never()).save(any());

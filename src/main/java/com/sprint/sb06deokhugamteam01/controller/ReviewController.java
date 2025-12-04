@@ -53,7 +53,7 @@ public class ReviewController {
             @ModelAttribute @Valid CursorPageReviewRequest request,
             @RequestHeader("Deokhugam-Request-User-ID") UUID requestUserId
     ) {
-        log.info("Request to get reviews: {}", requestUserId);
+        log.info("Request to get multiple reviews: {}", requestUserId);
         CursorPageResponseReviewDto response = reviewService.getReviews(request, requestUserId);
         log.info("Reviews: {}", response);
         return ResponseEntity.ok(response);
