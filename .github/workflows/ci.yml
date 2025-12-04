@@ -11,6 +11,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      NAVER_API_CLIENT_ID: ${{ secrets.NAVER_API_CLIENT_ID }}
+      NAVER_API_CLIENT_SECRET: ${{ secrets.NAVER_API_CLIENT_SECRET }}
+      OCR_SPACE_API_KEY: ${{ secrets.OCR_SPACE_API_KEY }}
+
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
