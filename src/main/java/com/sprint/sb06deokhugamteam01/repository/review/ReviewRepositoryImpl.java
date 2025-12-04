@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -34,7 +33,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     @Override
     public Slice<Review> getReviews(ReviewSearchCondition condition, Pageable pageable) {
 
-        Integer limit = condition.limit();
+        int limit = condition.limit();
         List<Review> results = queryFactory
                 .selectFrom(qReview)
                 .where(
@@ -63,7 +62,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         // SliceImpl 반환을 위한 후처리
         boolean hasNext = results.size() > limit;
         if (hasNext) {
-            results.remove(limit.intValue()); // 요청한 개수 초과분은 제거
+            results.remove(limit); // 요청한 개수 초과분은 제거
         }
 
         // Pageable은 결과가 limit보다 작거나 같으면 hasNext=false로 자동 설정됨.
@@ -151,7 +150,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     @Override
     public Slice<Review> getPopularReviews(PopularReviewSearchCondition condition, Pageable pageable) {
 
-        Integer limit = condition.limit();
+        int limit = condition.limit();
         boolean descending = condition.descending();
         NumberExpression<Double> scoreExpression = getScoreExpression();
 
@@ -179,9 +178,9 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .fetch();
 
         // SliceImpl 반환을 위한 후처리
-        boolean hasNext = results.size() > condition.limit();
+        boolean hasNext = results.size() > limit;
         if (hasNext) {
-            results.remove(limit.intValue()); // 요청한 개수 초과분은 제거
+            results.remove(limit); // 요청한 개수 초과분은 제거
         }
 
         return new SliceImpl<>(results, pageable, hasNext);
@@ -268,6 +267,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         Order order = descending ? Order.DESC : Order.ASC;
         return new OrderSpecifier<>(order, qReview.createdAt);
     }
+
     private Map<String, Object> detailMap(String key, Object value) {
         Map<String, Object> details = new HashMap<>();
         details.put(key, value);

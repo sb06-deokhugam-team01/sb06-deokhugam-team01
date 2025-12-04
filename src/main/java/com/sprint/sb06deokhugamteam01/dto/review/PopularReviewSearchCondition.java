@@ -11,6 +11,6 @@ public record PopularReviewSearchCondition(
         boolean descending,
         String cursor,
         LocalDateTime after,
-        Integer limit
+        int limit
 ) {
 }

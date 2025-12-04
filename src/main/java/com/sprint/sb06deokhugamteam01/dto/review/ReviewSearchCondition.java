@@ -15,7 +15,7 @@ public record ReviewSearchCondition(
         boolean useRating,
         String cursor,
         LocalDateTime after,
-        Integer limit,
+        int limit,
         Pageable pageable
 ) {
 }
