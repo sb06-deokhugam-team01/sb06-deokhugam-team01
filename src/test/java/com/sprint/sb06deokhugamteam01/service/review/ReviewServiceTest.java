@@ -1,16 +1,44 @@
 package com.sprint.sb06deokhugamteam01.service.review;
 
+import com.sprint.sb06deokhugamteam01.domain.book.Book;
+import com.sprint.sb06deokhugamteam01.domain.review.PopularReviewSearchCondition;
+import com.sprint.sb06deokhugamteam01.domain.review.Review;
+import com.sprint.sb06deokhugamteam01.domain.User;
+import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
+import com.sprint.sb06deokhugamteam01.dto.review.*;
+import com.sprint.sb06deokhugamteam01.exception.review.ReviewNotFoundException;
+import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
+import com.sprint.sb06deokhugamteam01.repository.BookRepository;
+import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
+import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
+import com.sprint.sb06deokhugamteam01.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
 
-    /*@Mock
+    @Mock
     private ReviewRepository reviewRepository;
 
     @Mock
@@ -400,5 +428,5 @@ class ReviewServiceTest {
                 .isInstanceOf(ReviewNotFoundException.class);
 
         verify(reviewRepository, never()).save(any());
-    }*/
+    }
 }
