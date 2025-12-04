@@ -25,7 +25,7 @@ class BasicS3StorageServiceTest {
 
     @Test
     @DisplayName("deleteObjects 실패 테스트 - 객체 없음")
-    void deleteObjects_Failure_NoSuchS3Object() {
+    void deleteObjects_Failure_S3ObjectNotFound() {
 
     }
 
@@ -37,7 +37,7 @@ class BasicS3StorageServiceTest {
 
     @Test
     @DisplayName("getPresignedUrl 실패 테스트 - 객체 없음")
-    void getPresignedUrl_Failure_NoSuchS3Object() {
+    void getPresignedUrl_Failure_S3ObjectNotFound() {
         
     }
 
