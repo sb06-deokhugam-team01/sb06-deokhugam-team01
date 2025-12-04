@@ -18,6 +18,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -164,5 +165,88 @@ public class CommentRepositoryTest {
                 .allMatch(createdAt -> createdAt.equals(sameTime));
         assertThat(result.comments()).extracting(Comment::getId)
                 .containsExactlyElementsOf(expectedSortedIds);
+    }
+
+    @Test
+    @DisplayName("findById - 논리 삭제된 데이터 포함")
+    void findByIdAndIsActiveFalse_Success() {
+        // given
+        User user = userRepository.save(User.builder().build());
+        Review review = reviewRepository.save(Review.builder().build());
+
+        Comment deletedComment = Comment.builder().user(user).review(review).content("논리 삭제된 댓글").build();
+        deletedComment.markAsDeleted();
+        commentRepository.save(deletedComment);
+
+        entityManager.flush();
+        entityManager.clear(); // 영속성 컨텍스트를 비워 DB 접근 강제
+
+        // when & then
+        assertThat(commentRepository.findById(deletedComment.getId())).isEmpty();
+        assertThat(commentRepository.findByIdAndIsActiveFalse(deletedComment.getId())).isNotEmpty();
+    }
+    @Test
+    @DisplayName("delete - 논리 삭제된 데이터 포함")
+    void hardDeleteById_Success() {
+        // given
+        User user = userRepository.save(User.builder().build());
+        Review review = reviewRepository.save(Review.builder().build());
+
+        Comment deletedComment = Comment.builder().user(user).review(review).content("논리 삭제된 댓글").build();
+        deletedComment.markAsDeleted();
+        commentRepository.save(deletedComment);
+
+        // when
+        commentRepository.hardDeleteById(deletedComment.getId());
+
+        // then
+        assertThat(commentRepository.count()).isEqualTo(0L);
+        assertThat(commentRepository.findByIdAndIsActiveFalse(deletedComment.getId())).isNotPresent();
+    }
+    @Test
+    @DisplayName("deleteAllByReview(리뷰와 연관된 모든 댓글 삭제) - 논리 삭제된 데이터 포함")
+    void deleteAllByReview_Success() {
+        // given
+        User user = userRepository.save(User.builder().build());
+        Review targetReview = reviewRepository.save(Review.builder().build());
+        Review anotherReview = reviewRepository.save(Review.builder().build());
+
+        Comment reviewCommentA = Comment.builder().review(targetReview).user(user).content("타겟 리뷰의 댓글").build();
+        reviewCommentA.markAsDeleted();
+        Comment reviewCommentB = Comment.builder().review(targetReview).user(user).content("타겟 리뷰의 댓글").build();
+        Comment anotherReviewComment = Comment.builder().review(anotherReview).user(user).content("다른 리뷰의 댓글").build();
+        commentRepository.save(reviewCommentA);
+        commentRepository.save(reviewCommentB);
+        commentRepository.save(anotherReviewComment);
+
+        // when
+        commentRepository.deleteAllByReview(targetReview);
+
+        // then
+        assertThat(commentRepository.findByIdAndIsActiveFalse(reviewCommentA.getId())).isNotPresent();
+        assertThat(commentRepository.findByIdAndIsActiveFalse(reviewCommentB.getId())).isNotPresent();
+        assertThat(commentRepository.findByIdAndIsActiveFalse(anotherReviewComment.getId())).isPresent();
+    }
+    @Test
+    @DisplayName("deleteByReviewIn(리스트에 있는 리뷰와 연관된 모든 댓글 삭제) - 논리 삭제된 데이터 포함")
+    void deleteByReviewIn_Success() {
+        // given
+        User user = userRepository.save(User.builder().build());
+        Review reviewA = reviewRepository.save(Review.builder().build());
+        Review reviewB = reviewRepository.save(Review.builder().build());
+        List<Review> reviewsList = List.of(reviewA, reviewB);
+
+        Comment comment = Comment.builder().review(reviewA).user(user).content("댓글").build();
+        Comment deletedComment = Comment.builder().review(reviewB).user(user).content("논리 삭제된 댓글").build();
+        deletedComment.markAsDeleted();
+        commentRepository.save(comment);
+        commentRepository.save(deletedComment);
+
+        // when
+        commentRepository.deleteByReviewIn(reviewsList);
+
+        // then
+        assertThat(commentRepository.findByIdAndIsActiveFalse(deletedComment.getId())).isNotPresent();
+        assertThat(commentRepository.findByIdAndIsActiveFalse(comment.getId())).isNotPresent();
     }
 }

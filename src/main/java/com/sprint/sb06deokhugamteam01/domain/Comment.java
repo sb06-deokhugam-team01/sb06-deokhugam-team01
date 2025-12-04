@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import lombok.*;
 import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -23,7 +24,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 @Entity
 @Getter
-@SQLRestriction("is_active = true")
+//@SQLRestriction("is_active = true")
+@Where(clause = "is_active = true") // @SQLRestriction이 테스트 환경에서 동작하지 않아, 현재 deprecated 된 @Where 사용
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "comments")
 public class Comment {
