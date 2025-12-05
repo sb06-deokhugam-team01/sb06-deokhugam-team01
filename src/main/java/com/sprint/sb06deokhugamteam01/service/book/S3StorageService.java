@@ -6,6 +6,6 @@ public interface S3StorageService {
 
     void deleteObject(String id);
 
-    String getPresignedUrl(String id);
+    String getPresignedUrl(String id, String contentType);
 
 }

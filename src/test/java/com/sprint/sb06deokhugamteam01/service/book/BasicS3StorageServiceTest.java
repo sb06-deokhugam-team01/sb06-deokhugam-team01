@@ -1,9 +1,8 @@
 package com.sprint.sb06deokhugamteam01.service.book;
 
+import com.sprint.sb06deokhugamteam01.exception.book.S3ObjectNotFound;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -41,11 +40,32 @@ class BasicS3StorageServiceTest {
     @DisplayName("deleteObject 성공 테스트")
     void deleteObject_Success() {
 
+        //given
+        String id = UUID.randomUUID().toString();
+        byte[] content = "content".getBytes();
+        String putResult = basicS3StorageService.putObject(id, content);
+
+        //when
+
+        //then
+        assertDoesNotThrow(() -> basicS3StorageService.deleteObject(putResult));
+
     }
 
     @Test
     @DisplayName("deleteObjects 실패 테스트 - 객체 없음")
     void deleteObjects_Failure_S3ObjectNotFound() {
+
+        //given
+        String id = UUID.randomUUID().toString();
+
+        //when
+        S3ObjectNotFound exception = assertThrows(S3ObjectNotFound.class, () -> {
+            basicS3StorageService.deleteObject(id);
+        });
+
+        //then
+        assertEquals("S3 Object not found", exception.getMessage());
 
     }
 
@@ -53,11 +73,36 @@ class BasicS3StorageServiceTest {
     @DisplayName("getPresignedUrl 성공 테스트")
     void getPresignedUrl_Success() {
 
+        //given
+        String id = UUID.randomUUID().toString();
+        byte[] content = "content".getBytes();
+        String contentType = "image/png";
+        String putResult = basicS3StorageService.putObject(id, content);
+
+        //when
+        String presignedUrl = basicS3StorageService.getPresignedUrl(putResult, contentType);
+
+        //then
+        assertNotNull(presignedUrl);
+        basicS3StorageService.deleteObject(putResult);
+
     }
 
     @Test
     @DisplayName("getPresignedUrl 실패 테스트 - 객체 없음")
     void getPresignedUrl_Failure_S3ObjectNotFound() {
+
+        //given
+        String id = UUID.randomUUID().toString();
+        String contentType = "image/png";
+
+        //when
+        S3ObjectNotFound exception = assertThrows(S3ObjectNotFound.class, () -> {
+            basicS3StorageService.getPresignedUrl(id, contentType);
+        });
+
+        //then
+        assertEquals("S3 Object not found", exception.getMessage());
         
     }
 
