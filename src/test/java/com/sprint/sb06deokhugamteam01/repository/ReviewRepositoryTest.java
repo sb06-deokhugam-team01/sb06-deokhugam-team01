@@ -6,6 +6,7 @@ import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.domain.review.PopularReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.domain.review.Review;
 import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
+import com.sprint.sb06deokhugamteam01.dto.User.request.UserRegisterRequest;
 import com.sprint.sb06deokhugamteam01.dto.review.CursorPagePopularReviewRequest;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import jakarta.persistence.EntityManager;
@@ -58,31 +59,23 @@ class ReviewRepositoryTest {
 
         reviewRepository.deleteAll();
 
-        testUser1 = User.builder()
-                .email("testUser@testUser.com")
-                .nickname("testUser")
-                .password("testUser")
-                .isActive(true)
-                .createdAt(LocalDateTime.now())
-                .build();
+        UserRegisterRequest userRequest1 = new UserRegisterRequest(
+            "testUser@testUser.com", "testUser", "testUser"
+        );
+        UserRegisterRequest userRequest2 = new UserRegisterRequest(
+            "testUser2@testUser2.com", "testUser2", "testUser2"
+        );
+        UserRegisterRequest requestUserRequest = new UserRegisterRequest(
+            "requestUser@requestUser.com", "requestUser", "requestUser"
+        );
+
+        testUser1 = User.toEntity(userRequest1);
         testUser1 = em.merge(testUser1);
 
-        testUser2 = User.builder()
-                .email("testUser2@testUser2.com")
-                .nickname("testUser2")
-                .password("testUser2")
-                .isActive(true)
-                .createdAt(LocalDateTime.now())
-                .build();
+        testUser2 = User.toEntity(userRequest2);
         testUser2 = em.merge(testUser2);
 
-        testRequestUser = User.builder()
-                .email("requestUser@requestUser.com")
-                .nickname("requestUser")
-                .password("requestUser")
-                .isActive(true)
-                .createdAt(LocalDateTime.now())
-                .build();
+        testRequestUser = User.toEntity(userRequest1);
         testRequestUser = em.merge(testRequestUser);
 
         testBook1 = Book.builder()

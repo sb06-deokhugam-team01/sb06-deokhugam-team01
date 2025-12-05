@@ -30,6 +30,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: deokhugam
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      NAVER_API_CLIENT_ID: ${NAVER_API_CLIENT_ID}
+      NAVER_API_CLIENT_SECRET: ${NAVER_API_CLIENT_SECRET}
+      OCR_SPACE_API_KEY: ${OCR_SPACE_API_KEY}
     depends_on:
       db:
         condition: service_healthy
