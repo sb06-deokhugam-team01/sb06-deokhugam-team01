@@ -1,6 +1,7 @@
 package com.sprint.sb06deokhugamteam01.service.comment;
 
 import com.sprint.sb06deokhugamteam01.domain.Comment;
+import com.sprint.sb06deokhugamteam01.domain.Notification;
 import com.sprint.sb06deokhugamteam01.domain.review.Review;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentCreateRequest;
@@ -15,6 +16,7 @@ import com.sprint.sb06deokhugamteam01.exception.comment.CommentNotFoundException
 import com.sprint.sb06deokhugamteam01.exception.review.ReviewNotFoundException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
+import com.sprint.sb06deokhugamteam01.repository.notification.NotificationRepository;
 import com.sprint.sb06deokhugamteam01.repository.UserRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +25,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
@@ -46,12 +47,13 @@ public class CommentServiceTest {
     private UserRepository userRepository;
     @Mock
     private ReviewRepository reviewRepository;
+    @Mock
+    private NotificationRepository notificationRepository;
 
     @InjectMocks
     private CommentServiceImpl commentService;
 
 
-    // TODO: Easy Random 사용... 추후 변경
     @Test
     @DisplayName("댓글 등록 성공")
     void createComment_Success(){
@@ -61,7 +63,7 @@ public class CommentServiceTest {
 
         User user = User.builder().nickname("유저").build();
         ReflectionTestUtils.setField(user, "id", userId);
-        Review review = Review.builder().build();
+        Review review = Review.builder().user(user).build();
         ReflectionTestUtils.setField(review, "id", reviewId);
 
         String content = "댓글";
@@ -69,6 +71,8 @@ public class CommentServiceTest {
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
         given(commentRepository.save(any(Comment.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+        given(notificationRepository.save(any(Notification.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
         CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, content);
@@ -82,6 +86,7 @@ public class CommentServiceTest {
         assertThat(result.content()).isEqualTo(content);
         assertThat(result.userNickname()).isEqualTo("유저");
         verify(commentRepository).save(any(Comment.class));
+        verify(notificationRepository).save(any(Notification.class));
     }
     @Test
     @DisplayName("존재하지 않는 유저로 댓글 등록 시도 시 실패")
@@ -249,13 +254,13 @@ public class CommentServiceTest {
         Comment comment = Comment.builder().user(user).build();
         ReflectionTestUtils.setField(comment, "id", commentId);
 
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+        given(commentRepository.findByIdAndIsActiveFalse(commentId)).willReturn(Optional.of(comment));
 
         // when
         commentService.hardDeleteComment(commentId, userId);
 
         // then
-        verify(commentRepository).delete(comment);
+        verify(commentRepository).hardDeleteById(commentId);
     }
     @Test
     @DisplayName("존재하지 않는 댓글로 물리 삭제 실패")
@@ -264,7 +269,7 @@ public class CommentServiceTest {
         UUID userId = UUID.randomUUID();
         UUID invalidCommentId = UUID.randomUUID();
 
-        given(commentRepository.findById(invalidCommentId)).willReturn(Optional.empty());
+        given(commentRepository.findByIdAndIsActiveFalse(invalidCommentId)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> commentService.hardDeleteComment(invalidCommentId, userId))
@@ -284,7 +289,7 @@ public class CommentServiceTest {
         Comment comment = Comment.builder().user(owner).build();
         ReflectionTestUtils.setField(comment, "id", commentId);
 
-        given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+        given(commentRepository.findByIdAndIsActiveFalse(commentId)).willReturn(Optional.of(comment));
 
         // when & then
         assertThatThrownBy(() -> commentService.hardDeleteComment(commentId, anotherUserId))
