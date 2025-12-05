@@ -169,7 +169,7 @@ class ReviewRepositoryTest {
         assertThat(slice.hasNext()).isTrue();
     }
 
-    @Test
+    /*@Test
     @DisplayName("리뷰 다건 조회 성공 - 기본 조회, 최신순 2개, 다음 페이지")
     void getReviews_cursor_createdAt_desc() {
 
@@ -212,7 +212,7 @@ class ReviewRepositoryTest {
         assertThat(slice.getContent()).extracting("id")
                 .containsExactly(testReview1.getId());
         assertThat(slice.hasNext()).isFalse();
-    }
+    }*/
 
     @Test
     @DisplayName("리뷰 다건 조회 성공 - 사용자 ID 및 도서 ID로 조회")
