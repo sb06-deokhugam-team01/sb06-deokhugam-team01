@@ -327,9 +327,9 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(detailMap("reviewId", reviewId)));
 
-        reviewRepository.delete(review);
         commentRepository.deleteAllByReview(review);
         reviewLikeRepository.deleteByReview(review);
+        reviewRepository.delete(review);
     }
 
     @Override
