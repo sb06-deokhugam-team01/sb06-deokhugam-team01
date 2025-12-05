@@ -49,13 +49,7 @@ public class BookServiceImpl implements  BookService {
 
     @Override
     public BookDto getBookByIsbn(String isbn) {
-
-        Book book = bookRepository.findByIsbn(isbn)
-                .orElseThrow(() -> new BookNotFoundException(detailMap("isbn", isbn)));
-
-        String presignedUrl = s3StorageService.getPresignedUrl(book.getThumbnailUrl());
-
-        return BookDto.fromEntityWithImageUrl(book, presignedUrl);
+        return bookSearchService.searchBookByIsbn(isbn.replace("-", ""));
     }
 
     @Transactional(readOnly = true)
@@ -175,9 +169,10 @@ public class BookServiceImpl implements  BookService {
     @Override
     public void hardDeleteBookById(UUID id) {
 
-        if (!bookRepository.existsById(id)) {
-            throw new BookNotFoundException(detailMap("id", id));
-        }
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException(detailMap("id", id)));
+
+        s3StorageService.deleteObject(book.getThumbnailUrl());
 
         bookRepository.deleteById(id);
 
