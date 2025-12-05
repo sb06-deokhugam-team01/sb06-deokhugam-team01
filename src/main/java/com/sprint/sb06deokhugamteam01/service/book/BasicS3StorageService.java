@@ -73,7 +73,7 @@ public class BasicS3StorageService implements S3StorageService {
     }
 
     @Override
-    public String getPresignedUrl(String id, String contentType) {
+    public String getPresignedUrl(String id) {
 
         checkIfObjectExists(id);
 
@@ -81,7 +81,6 @@ public class BasicS3StorageService implements S3StorageService {
                 .signatureDuration(Duration.parse(presignedUrlExpiration))
                 .getObjectRequest(builder -> builder.bucket(bucket)
                         .key(id)
-                        //.responseContentType(contentType))
                 )
                 .build();
 

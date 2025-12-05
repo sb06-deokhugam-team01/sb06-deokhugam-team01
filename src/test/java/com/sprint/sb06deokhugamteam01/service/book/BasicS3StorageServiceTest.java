@@ -76,11 +76,10 @@ class BasicS3StorageServiceTest {
         //given
         String id = UUID.randomUUID().toString();
         byte[] content = "content".getBytes();
-        String contentType = "image/png";
         String putResult = basicS3StorageService.putObject(id, content);
 
         //when
-        String presignedUrl = basicS3StorageService.getPresignedUrl(putResult, contentType);
+        String presignedUrl = basicS3StorageService.getPresignedUrl(putResult);
 
         //then
         assertNotNull(presignedUrl);
@@ -94,11 +93,10 @@ class BasicS3StorageServiceTest {
 
         //given
         String id = UUID.randomUUID().toString();
-        String contentType = "image/png";
 
         //when
         S3ObjectNotFound exception = assertThrows(S3ObjectNotFound.class, () -> {
-            basicS3StorageService.getPresignedUrl(id, contentType);
+            basicS3StorageService.getPresignedUrl(id);
         });
 
         //then
