@@ -89,15 +89,11 @@ public class BasicS3StorageService implements S3StorageService {
             throw new S3ObjectNotFound(detailMap("id", id));
         }
 
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucket)
-                .key(id)
-                .responseContentType(contentType)
-                .build();
-
         GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
                 .signatureDuration(Duration.parse(presignedUrlExpiration))
-                .getObjectRequest(getObjectRequest)
+                .getObjectRequest(builder -> builder.bucket(bucket)
+                        .key(id)
+                        .responseContentType(contentType))
                 .build();
 
         return s3Presigner.presignGetObject(getObjectPresignRequest)
