@@ -93,7 +93,8 @@ public class BasicS3StorageService implements S3StorageService {
                 .signatureDuration(Duration.parse(presignedUrlExpiration))
                 .getObjectRequest(builder -> builder.bucket(bucket)
                         .key(id)
-                        .responseContentType(contentType))
+                        //.responseContentType(contentType))
+                )
                 .build();
 
         return s3Presigner.presignGetObject(getObjectPresignRequest)
