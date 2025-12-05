@@ -8,6 +8,7 @@ import com.sprint.sb06deokhugamteam01.dto.book.response.BookInfo;
 import com.sprint.sb06deokhugamteam01.dto.book.response.CursorPageResponseBookDto;
 import com.sprint.sb06deokhugamteam01.service.book.BookService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,23 +29,8 @@ public class BookController {
 
     @GetMapping("")
     public ResponseEntity<CursorPageResponseBookDto> getBooksByCursor(
-            @RequestParam (required = false) String keyword,
-            @RequestParam String orderBy,
-            @RequestParam String direction,
-            @RequestParam (required = false) String cursor,
-            @RequestParam (required = false) String after,
-            @RequestParam (required = false, defaultValue = "12") Integer limit
+            @Valid @ModelAttribute PagingBookRequest request
             ) {
-
-        PagingBookRequest request = PagingBookRequest.builder()
-                .keyword(keyword)
-                .orderBy(PagingBookRequest.OrderBy.valueOf(orderBy.toUpperCase()))
-                .direction(PagingBookRequest.SortDirection.valueOf(direction.toUpperCase()))
-                .cursor(cursor)
-                .after(after != null ? LocalDateTime.parse(after) : null)
-                .limit(limit)
-                .build();
-
         log.info("Received Book get request: keyword={}", request.keyword());
         CursorPageResponseBookDto response = bookService.getBooksByPage(request);
         log.info("Books retrieved successfully: {}", response);
@@ -62,6 +48,17 @@ public class BookController {
         log.info("Book created successfully: {}", createdBook);
 
         return new ResponseEntity<>(createdBook, HttpStatus.CREATED);
+
+    }
+
+    @PostMapping("/isbn/ocr")
+    public ResponseEntity<String> getIsbnByImage(
+            @RequestParam("image") MultipartFile image) {
+        log.info("Received Book create by OCR ISBN request");
+        String isbn = bookService.getIsbnByImage(image);
+        log.info("Book created successfully: {}", isbn);
+
+        return new ResponseEntity<>(isbn, HttpStatus.OK);
 
     }
 

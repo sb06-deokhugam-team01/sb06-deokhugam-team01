@@ -5,11 +5,9 @@ import com.sprint.sb06deokhugamteam01.exception.RootException;
 
 import java.util.Map;
 
-public class NoSuchBookException extends RootException {
+public class BookNotFoundException extends RootException {
 
-    ErrorCode errorCode = ErrorCode.BOOK_NOT_FOUND;
-
-    public NoSuchBookException(Map<String, Object> details) {
+    public BookNotFoundException(Map<String, Object> details) {
         super(ErrorCode.BOOK_NOT_FOUND, details);
     }
 }

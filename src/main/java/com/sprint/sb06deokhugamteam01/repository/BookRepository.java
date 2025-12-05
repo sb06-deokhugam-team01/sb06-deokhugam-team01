@@ -1,16 +1,13 @@
 package com.sprint.sb06deokhugamteam01.repository;
 
-import com.sprint.sb06deokhugamteam01.domain.Book;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface BookRepository extends JpaRepository<Book, UUID>, BookQRepository {
+public interface BookRepository extends BookQRepository {
 
     boolean existsById(UUID id);
 

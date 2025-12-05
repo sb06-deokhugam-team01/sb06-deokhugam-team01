@@ -1,6 +1,6 @@
 package com.sprint.sb06deokhugamteam01.dto.book.request;
 
-import com.sprint.sb06deokhugamteam01.domain.Book;
+import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;

@@ -2,8 +2,9 @@ package com.sprint.sb06deokhugamteam01.repository;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
-import com.sprint.sb06deokhugamteam01.domain.Book;
-import com.sprint.sb06deokhugamteam01.domain.QBook;
+import com.sprint.sb06deokhugamteam01.domain.book.Book;
+import com.sprint.sb06deokhugamteam01.domain.book.BookOrderBy;
+import com.sprint.sb06deokhugamteam01.domain.book.QBook;
 import com.sprint.sb06deokhugamteam01.dto.book.request.PagingBookRequest;
 import io.github.openfeign.querydsl.jpa.spring.repository.QuerydslJpaRepository;
 import org.springframework.data.domain.Pageable;
@@ -58,7 +59,7 @@ public interface BookQRepository extends QuerydslJpaRepository<Book, UUID> {
             if (request.direction() == PagingBookRequest.SortDirection.ASC) {
 
                 //커서 기준 orderBy 필드 값 가져오기
-                switch (request.orderBy()) {
+                switch (BookOrderBy.withFieldName(request.orderBy())) {
                     case TITLE -> builder.and(qBook.title.gt(request.cursor()))
                             .or(qBook.title.eq(request.cursor()).and(qBook.createdAt.gt(request.after())));
                     case PUBLISHED_DATE -> builder.and(qBook.publishedDate.gt(LocalDate.parse(request.cursor())))
@@ -73,7 +74,7 @@ public interface BookQRepository extends QuerydslJpaRepository<Book, UUID> {
             } else {
 
                 //커서 기준 orderBy 필드 값 가져오기
-                switch (request.orderBy()) {
+                switch (BookOrderBy.withFieldName(request.orderBy())) {
                     case TITLE -> builder.and(qBook.title.lt(request.cursor()))
                             .or(qBook.title.eq(request.cursor()).and(qBook.createdAt.lt(request.after())));
                     case PUBLISHED_DATE -> builder.and(qBook.publishedDate.lt(LocalDate.parse(request.cursor())))
@@ -95,14 +96,14 @@ public interface BookQRepository extends QuerydslJpaRepository<Book, UUID> {
     private OrderSpecifier<?> buildOrderBy(PagingBookRequest request) {
 
         if (request.direction() == PagingBookRequest.SortDirection.ASC) {
-            return switch (request.orderBy()) {
+            return switch (BookOrderBy.withFieldName(request.orderBy())) {
                 case TITLE -> qBook.title.asc();
                 case PUBLISHED_DATE -> qBook.publishedDate.asc();
                 case RATING -> qBook.rating.asc();
                 case REVIEW_COUNT -> qBook.reviewCount.asc();
             };
         } else {
-            return switch (request.orderBy()) {
+            return switch (BookOrderBy.withFieldName(request.orderBy())) {
                 case TITLE -> qBook.title.desc();
                 case PUBLISHED_DATE -> qBook.publishedDate.desc();
                 case RATING -> qBook.rating.desc();

@@ -1,12 +1,12 @@
 package com.sprint.sb06deokhugamteam01.service.review;
 
-import com.sprint.sb06deokhugamteam01.domain.Book;
+import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import com.sprint.sb06deokhugamteam01.domain.review.PopularReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.domain.review.Review;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.dto.review.*;
-import com.sprint.sb06deokhugamteam01.exception.book.NoSuchBookException;
+import com.sprint.sb06deokhugamteam01.exception.book.BookNotFoundException;
 import com.sprint.sb06deokhugamteam01.exception.review.ReviewAlreadyExistsException;
 import com.sprint.sb06deokhugamteam01.exception.review.ReviewNotFoundException;
 import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
@@ -44,7 +44,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new UserNotFoundException(detailMap("userId", userId)));
 
         Book book = bookRepository.findById(request.bookId())
-                .orElseThrow(() -> new NoSuchBookException(detailMap("bookId", request.bookId())));
+                .orElseThrow(() -> new BookNotFoundException(detailMap("bookId", request.bookId())));
 
         // 누가 어떤 책에 대해 이미 리뷰를 쓴건지 정보를 담음
         if (reviewRepository.existsByUserAndBook(user, book)) {

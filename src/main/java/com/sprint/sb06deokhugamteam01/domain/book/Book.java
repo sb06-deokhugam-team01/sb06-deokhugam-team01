@@ -1,4 +1,4 @@
-package com.sprint.sb06deokhugamteam01.domain;
+package com.sprint.sb06deokhugamteam01.domain.book;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

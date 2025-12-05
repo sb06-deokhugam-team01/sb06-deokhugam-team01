@@ -1,12 +1,13 @@
 package com.sprint.sb06deokhugamteam01.service.book;
 
-import com.sprint.sb06deokhugamteam01.domain.Book;
+import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import com.sprint.sb06deokhugamteam01.dto.book.BookDto;
 import com.sprint.sb06deokhugamteam01.dto.book.request.BookCreateRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.request.BookUpdateRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.request.PagingBookRequest;
 import com.sprint.sb06deokhugamteam01.dto.book.response.CursorPageResponseBookDto;
-import com.sprint.sb06deokhugamteam01.exception.book.*;
+import com.sprint.sb06deokhugamteam01.exception.book.AlreadyExistsIsbnException;
+import com.sprint.sb06deokhugamteam01.exception.book.BookNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
@@ -20,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,6 +46,12 @@ class BookServiceImplTest {
 
     @Mock
     private ReviewRepository reviewRepository;
+
+    @Mock
+    private BookSearchService bookSearchService;
+
+    @Mock
+    private OcrService ocrService;
 
     @InjectMocks
     private BookServiceImpl bookService;
@@ -101,7 +109,7 @@ class BookServiceImplTest {
                 .thenReturn(Optional.empty());
 
         //when
-        NoSuchBookException e = assertThrows(NoSuchBookException.class, () -> {
+        BookNotFoundException e = assertThrows(BookNotFoundException.class, () -> {
             bookService.getBookById(bookId);
         });
 
@@ -117,8 +125,8 @@ class BookServiceImplTest {
         //given
         String isbn = bookDto.isbn();
 
-        when(bookRepository.findByIsbn(isbn))
-                .thenReturn(Optional.of(book));
+        when(bookSearchService.searchBookByIsbn(isbn))
+                .thenReturn(bookDto);
 
         //when
         BookDto result = bookService.getBookByIsbn(isbn);
@@ -130,33 +138,13 @@ class BookServiceImplTest {
     }
 
     @Test
-    @DisplayName("getBookByIsbn 실패 테스트 - 존재하지 않는 도서")
-    void getBookByIsbn_Fail_NoSuchBook() {
-
-        //given
-        String isbn = "0000000000000";
-
-        when(bookRepository.findByIsbn(isbn))
-                .thenReturn(Optional.empty());
-
-        //when
-        NoSuchBookException exception = assertThrows(NoSuchBookException.class, () -> {
-            bookService.getBookByIsbn(isbn);
-        });
-
-        //then
-        assertEquals("Book not found", exception.getMessage());
-
-    }
-
-    @Test
     @DisplayName("paginateBooks 성공 테스트")
     void paginateBooks_Success() {
 
         //given
         PagingBookRequest pagingBookRequest = PagingBookRequest.builder()
                 .keyword("test")
-                .orderBy(PagingBookRequest.OrderBy.valueOf("title".toUpperCase()))
+                .orderBy("title")
                 .direction(PagingBookRequest.SortDirection.ASC)
                 .cursor("test-cursor")
                 .after(LocalDateTime.now())
@@ -229,6 +217,9 @@ class BookServiceImplTest {
         when(bookRepository.existsByIsbn(bookCreateRequest.isbn()))
                 .thenReturn(true);
 
+        when(bookRepository.findByIsbn(bookCreateRequest.isbn()))
+                .thenReturn(Optional.of(book));
+
         //when
         AlreadyExistsIsbnException exception = assertThrows(AlreadyExistsIsbnException.class, () -> {
             bookService.createBook(bookCreateRequest, null);
@@ -240,9 +231,9 @@ class BookServiceImplTest {
     }
 
     //외부 api 테스트이므로 현재는 실패
-    @Test
-    @DisplayName("createBook 실패 테스트 - 잘못된 ISBN")
-    void createBook_Fail_InvalidIsbn() {
+    /*@Test
+    @DisplayName("createBook 실패 테스트 - S3 업로드 오류")
+    void createBook_Fail_S3UploadError() {
 
         //given
         BookCreateRequest bookCreateRequest = new BookCreateRequest(
@@ -255,64 +246,33 @@ class BookServiceImplTest {
         );
 
         //when
-        InvalidIsbnException exception = assertThrows(InvalidIsbnException.class, () -> {
+        S3UploadFailedException exception = assertThrows(S3UploadFailedException.class, () -> {
             bookService.createBook(bookCreateRequest, null);
         });
 
         //then
-        assertEquals("유효하지 않은 ISBN 입니다.", exception.getMessage());
+        assertEquals("S3 업로드에 실패하였습니다.", exception.getMessage());
 
-    }
+    }*/
 
-    //외부 api 테스트이므로 현재는 실패
     @Test
-    @DisplayName("createBook 실패 테스트 - 도서 정보 조회 불가")
-    void createBook_Fail_CannotFetchBookInfo() {
+    @DisplayName("createBookByIsbnImage 성공 테스트")
+    void getIsbnByImage_Success() {
 
         //given
-        BookCreateRequest bookCreateRequest = new BookCreateRequest(
-                "9788966262084",
-                "테스트 도서",
-                "테스트 저자",
-                "테스트 출판사",
-                LocalDate.now(),
-                "sdfadsfadsf"
-        );
+        String isbn = "9788966262084";
+
+        when(ocrService.extractIsbnFromImage(any(byte[].class), any(String.class)))
+                .thenReturn(isbn);
 
         //when
-        BookInfoFetchFailedException exception = assertThrows(BookInfoFetchFailedException.class, () -> {
-            bookService.createBook(bookCreateRequest, null);
-        });
+        String result = bookService.getIsbnByImage(new MockMultipartFile("isbnImage.png", "isbnImage.png", "png",new byte[]{}));
 
         //then
-        assertEquals("도서 정보를 조회할 수 없습니다.", exception.getMessage());
+        assertNotNull(result);
+        assertEquals(isbn, result);
 
     }
-
-    //외부 api 테스트이므로 현재는 실패
-//    @Test
-//    @DisplayName("createBook 실패 테스트 - S3 업로드 오류")
-//    void createBook_Fail_S3UploadError() {
-//
-//        //given
-//        BookCreateRequest bookCreateRequest = new BookCreateRequest(
-//                "9788966262084",
-//                "테스트 도서",
-//                "테스트 저자",
-//                "테스트 출판사",
-//                LocalDate.now(),
-//                "sdfadsfadsf"
-//        );
-//
-//        //when
-//        S3UploadFailedException exception = assertThrows(S3UploadFailedException.class, () -> {
-//            bookService.createBook(bookCreateRequest, null);
-//        });
-//
-//        //then
-//        assertEquals("S3 업로드에 실패하였습니다.", exception.getMessage());
-//
-//    }
 
     @Test
     @DisplayName("updateBook 성공 테스트")
@@ -365,7 +325,7 @@ class BookServiceImplTest {
                 .thenReturn(Optional.empty());
 
         //when
-        NoSuchBookException exception = assertThrows(NoSuchBookException.class, () -> {
+        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () -> {
             bookService.updateBook(bookDto.id(), updateRequest, null);
         });
 
@@ -400,7 +360,7 @@ class BookServiceImplTest {
         UUID bookId = bookDto.id();
 
         //when
-        NoSuchBookException exception = assertThrows(NoSuchBookException.class, () -> {
+        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () -> {
             bookService.deleteBookById(bookId);
         });
 
@@ -439,7 +399,7 @@ class BookServiceImplTest {
         UUID bookId = bookDto.id();
 
         //when
-        NoSuchBookException exception = assertThrows(NoSuchBookException.class, () -> {
+        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () -> {
             bookService.hardDeleteBookById(bookId);
         });
 

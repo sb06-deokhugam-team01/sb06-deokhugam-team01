@@ -27,9 +27,9 @@ jobs:
 
       - name: make env files
         run: |
-            echo "NAVER_API_CLIENT_ID=${{ secrets.NAVER_API_CLIENT_ID }}" >> .env
-            echo "NAVER_API_CLIENT_SECRET=${{ secrets.NAVER_API_CLIENT_SECRET }}" >> .env
-            echo "OCR_SPACE_API_KEY=${{ secrets.OCR_SPACE_API_KEY }}" >> .env
+          echo "NAVER_API_CLIENT_ID = ${{secrets.NAVER_API_CLIENT_ID}}" >> .env
+          echo "NAVER_API_CLIENT_SECRET = ${{secrets.NAVER_API_CLIENT_SECRET}}" >> .env
+          echo "OCR_SPACE_API_KEY = ${{secrets.OCR_SPACE_API_KEY}}" >> .env
 
       - name: check env files
         run: cat ./.env

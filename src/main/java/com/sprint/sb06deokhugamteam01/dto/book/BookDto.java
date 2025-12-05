@@ -1,6 +1,6 @@
 package com.sprint.sb06deokhugamteam01.dto.book;
 
-import com.sprint.sb06deokhugamteam01.domain.Book;
+import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import lombok.Builder;
 
 import java.time.LocalDate;
