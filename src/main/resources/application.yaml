@@ -1,6 +1,15 @@
 spring:
   application:
     name: sb06-deokhugam-team01
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_S3_ACCESS_KEY}
+        secret-key: ${AWS_S3_SECRET_KEY}
+      region:
+        static: ${ap-northeast-2:ap-northeast-2}
+      s3:
+        bucket: ${AWS_S3_BUCKET}
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/deokhugam}
     username: ${SPRING_DATASOURCE_USERNAME:deokhugam}
