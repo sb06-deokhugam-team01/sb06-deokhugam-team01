@@ -130,6 +130,14 @@ public class BookServiceImpl implements  BookService {
             throw new BookNotFoundException(detailMap("id", id));
         }
 
+        //S3 파일 업로드 처리
+        UUID fileId = UUID.randomUUID();
+        try {
+            book.updateThumbnailUrl(s3StorageService.putObject(String.valueOf(fileId), file.getBytes()));
+        } catch (IOException e) {
+            throw new S3UploadFailedException(detailMap("fileName", Objects.requireNonNull(file.getOriginalFilename())));
+        }
+
         book.updateBook(
                 bookUpdateRequest.title(),
                 bookUpdateRequest.author(),
