@@ -11,6 +11,8 @@ import com.sprint.sb06deokhugamteam01.dto.book.response.CursorPageResponseBookDt
 import com.sprint.sb06deokhugamteam01.exception.book.AlreadyExistsIsbnException;
 import com.sprint.sb06deokhugamteam01.exception.book.InvalidIsbnException;
 import com.sprint.sb06deokhugamteam01.exception.book.BookNotFoundException;
+import com.sprint.sb06deokhugamteam01.exception.book.NoSuchBookException;
+import com.sprint.sb06deokhugamteam01.exception.book.S3UploadFailedException;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
@@ -26,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +39,7 @@ public class BookServiceImpl implements  BookService {
     private final ReviewRepository reviewRepository;
     private final BookSearchService bookSearchService;
     private final OcrService ocrService;
+    private final S3StorageService s3StorageService;
 
     @Override
     public BookDto getBookById(UUID id) {
@@ -85,7 +89,13 @@ public class BookServiceImpl implements  BookService {
 
         Book book = BookCreateRequest.fromDto(bookCreateRequest);
 
-        //ToDo: S3 파일 업로드 처리
+        //S3 파일 업로드 처리
+        UUID id = UUID.randomUUID();
+        try {
+            s3StorageService.putObject(String.valueOf(id), file.getBytes());
+        } catch (IOException e) {
+            throw new S3UploadFailedException(detailMap("fileName", Objects.requireNonNull(file.getOriginalFilename())));
+        }
 
         return BookDto.fromEntity(bookRepository.save(book));
 
