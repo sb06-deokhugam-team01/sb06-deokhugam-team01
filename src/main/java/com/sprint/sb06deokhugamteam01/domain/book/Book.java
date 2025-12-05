@@ -32,6 +32,7 @@ public class Book {
 
     private String author;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     private String publisher;
@@ -71,6 +72,10 @@ public class Book {
         this.description = description;
         this.publisher = publisher;
         this.publishedDate = publishedDate;
+    }
+
+    public void updateThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
     }
 
     public void softDelete() {

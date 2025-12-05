@@ -5,8 +5,8 @@ import com.sprint.sb06deokhugamteam01.exception.RootException;
 
 import java.util.Map;
 
-public class AlreadyExistsIsbnException extends RootException {
-    public AlreadyExistsIsbnException(Map<String, Object> details) {
-        super(ErrorCode.ALREADY_EXISTS_ISBN, details);
+public class S3ObjectNotFound extends RootException {
+    public S3ObjectNotFound(Map<String, Object> details) {
+        super(ErrorCode.S3_OBJECT_NOT_FOUND, details);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,8 +59,21 @@ public class NaverBookSearchService implements BookSearchService{
                 .publisher(bookData.publisher())
                 .publishedDate(bookData.getPublishedDate())
                 .isbn(bookData.isbn())
-                .thumbnailUrl(bookData.image())
+                .thumbnailUrl(fetchImageData(bookData.image()))
                 .build();
+    }
+
+    private String fetchImageData(String imageUrl) {
+        RestClient restClient = RestClient.builder()
+                .baseUrl(imageUrl)
+                .build();
+
+        byte[] imageData = restClient.get()
+                .retrieve()
+                .body(byte[].class);
+
+        return Base64.getEncoder().encodeToString(imageData);
+
     }
 
     private Map<String, Object> detailMap(String key, Object value) {

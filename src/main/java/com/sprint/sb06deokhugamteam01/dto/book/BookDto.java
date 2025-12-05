@@ -42,4 +42,23 @@ public record BookDto(
 
     }
 
+    public static BookDto fromEntityWithImageUrl(Book book, String imageUrl) {
+
+        return BookDto.builder()
+                .id(book.getId())
+                .title(book.getTitle())
+                .author(book.getAuthor())
+                .description(book.getDescription())
+                .publisher(book.getPublisher())
+                .publishedDate(book.getPublishedDate())
+                .isbn(book.getIsbn())
+                .thumbnailUrl(imageUrl)
+                .reviewCount(book.getReviewCount())
+                .rating(book.getRating())
+                .createdAt(book.getCreatedAt())
+                .updatedAt(book.getUpdatedAt())
+                .build();
+
+    }
+
 }

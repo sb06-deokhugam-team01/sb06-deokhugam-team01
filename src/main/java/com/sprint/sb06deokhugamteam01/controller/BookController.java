@@ -8,7 +8,6 @@ import com.sprint.sb06deokhugamteam01.dto.book.response.BookInfo;
 import com.sprint.sb06deokhugamteam01.dto.book.response.CursorPageResponseBookDto;
 import com.sprint.sb06deokhugamteam01.service.book.BookService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
@@ -33,7 +31,7 @@ public class BookController {
             ) {
         log.info("Received Book get request: keyword={}", request.keyword());
         CursorPageResponseBookDto response = bookService.getBooksByPage(request);
-        log.info("Books retrieved successfully: {}", response);
+        log.info("Books retrieved successfully: {}", request.keyword());
 
         return ResponseEntity.ok(response);
 

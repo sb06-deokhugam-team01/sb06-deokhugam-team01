@@ -7,14 +7,13 @@ import lombok.Getter;
 import java.util.List;
 
 @Builder
-@Getter
-public class CursorPageResponseBookDto {
-
-    private List<BookDto> content;
-    private String nextCursor;
-    private String nextAfter;
-    private int size;
-    private int totalElements;
-    private boolean hasNext;
+public record CursorPageResponseBookDto(
+        List<BookDto> content,
+        String nextCursor,
+        String nextAfter,
+        int size,
+        int totalElements,
+        boolean hasNext
+) {
 
 }
