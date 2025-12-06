@@ -1,6 +1,6 @@
 package com.sprint.sb06deokhugamteam01.domain.batch;
 
-import com.sprint.sb06deokhugamteam01.domain.review.Review;
+import com.sprint.sb06deokhugamteam01.domain.Review;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;

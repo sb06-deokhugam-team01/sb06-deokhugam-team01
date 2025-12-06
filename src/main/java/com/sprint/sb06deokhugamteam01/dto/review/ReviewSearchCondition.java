@@ -1,4 +1,4 @@
-package com.sprint.sb06deokhugamteam01.domain.review;
+package com.sprint.sb06deokhugamteam01.dto.review;
 
 import lombok.Builder;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +15,7 @@ public record ReviewSearchCondition(
         boolean useRating,
         String cursor,
         LocalDateTime after,
-        Integer limit,
+        int limit,
         Pageable pageable
 ) {
 }

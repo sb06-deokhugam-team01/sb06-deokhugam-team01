@@ -1,15 +1,24 @@
 package com.sprint.sb06deokhugamteam01.service.review;
 
 import com.sprint.sb06deokhugamteam01.domain.book.Book;
-import com.sprint.sb06deokhugamteam01.domain.review.PopularReviewSearchCondition;
-import com.sprint.sb06deokhugamteam01.domain.review.Review;
+import com.sprint.sb06deokhugamteam01.dto.review.PopularReviewSearchCondition;
+import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.domain.User;
-import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
-import com.sprint.sb06deokhugamteam01.dto.review.*;
+import com.sprint.sb06deokhugamteam01.dto.review.ReviewSearchCondition;
+import com.sprint.sb06deokhugamteam01.dto.review.request.CursorPagePopularReviewRequest;
+import com.sprint.sb06deokhugamteam01.dto.review.request.CursorPageReviewRequest;
+import com.sprint.sb06deokhugamteam01.dto.review.request.ReviewCreateRequest;
+import com.sprint.sb06deokhugamteam01.dto.review.request.ReviewUpdateRequest;
+import com.sprint.sb06deokhugamteam01.dto.review.response.CursorPageResponsePopularReviewDto;
+import com.sprint.sb06deokhugamteam01.dto.review.response.ReviewDto;
+import com.sprint.sb06deokhugamteam01.dto.review.response.ReviewLikeDto;
+import com.sprint.sb06deokhugamteam01.exception.review.InvalidReviewCursorException;
 import com.sprint.sb06deokhugamteam01.exception.review.ReviewNotFoundException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
+import com.sprint.sb06deokhugamteam01.mapper.ReviewMapper;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
+import com.sprint.sb06deokhugamteam01.repository.review.ReviewLikeRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import com.sprint.sb06deokhugamteam01.repository.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +32,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,6 +39,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -41,6 +50,9 @@ class ReviewServiceTest {
     private ReviewRepository reviewRepository;
 
     @Mock
+    private ReviewLikeRepository reviewLikeRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -48,6 +60,9 @@ class ReviewServiceTest {
 
     @Mock
     private CommentRepository commentRepository;
+
+    @Mock
+    private ReviewMapper reviewMapper;
 
     @InjectMocks
     private ReviewServiceImpl reviewService;
@@ -111,7 +126,7 @@ class ReviewServiceTest {
                 .user(testUser)
                 .book(testBook)
                 .rating(4)
-                .content("내용")
+                .content("테스트내용")
                 .likeCount(0)
                 .commentCount(2)
                 .createdAt(LocalDateTime.now())
@@ -140,17 +155,17 @@ class ReviewServiceTest {
         // given
         ReviewCreateRequest request = ReviewCreateRequest.builder()
                 .bookId(bookId)
-                .userId(userId)
+                .userId(requestUserId)
                 .content("테스트내용")
                 .rating(5)
                 .build();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(testBook));
 
         Review mockSavedReview = Review.builder()
                 .id(UUID.randomUUID())
-                .user(testUser)
+                .user(testRequestUser)
                 .book(testBook)
                 .rating(request.rating())
                 .content(request.content())
@@ -161,6 +176,15 @@ class ReviewServiceTest {
                 .isActive(true)
                 .build();
 
+        ReviewDto mockReviewDto = ReviewDto.builder()
+                .id(mockSavedReview.getId())
+                .userId(request.userId())
+                .bookId(request.bookId())
+                .content(request.content())
+                .rating(request.rating())
+                .build();
+
+        when(reviewMapper.toDto(any(Review.class), any(User.class))).thenReturn(mockReviewDto);
         when(reviewRepository.save(any(Review.class))).thenReturn(mockSavedReview);
 
         // when
@@ -169,7 +193,7 @@ class ReviewServiceTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.id()).isNotNull();
-        assertThat(response.userId()).isEqualTo(userId);
+        assertThat(response.userId()).isEqualTo(testRequestUser.getId());
         assertThat(response.content()).isEqualTo("테스트내용");
         assertThat(response.rating()).isEqualTo(5);
     }
@@ -200,6 +224,16 @@ class ReviewServiceTest {
     void getReview_성공(){
 
         // given
+        ReviewDto mockReviewDto = ReviewDto.builder()
+                .id(reviewId)
+                .userId(userId)
+                .bookId(bookId)
+                .bookTitle(testBook.getTitle())
+                .content(testReview.getContent())
+                .rating(testReview.getRating())
+                .build();
+
+        when(reviewMapper.toDto(any(Review.class), any(User.class))).thenReturn(mockReviewDto);
         when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(testReview));
 
@@ -211,7 +245,7 @@ class ReviewServiceTest {
         assertThat(response.id()).isEqualTo(reviewId);
         assertThat(response.userId()).isEqualTo(userId);
         assertThat(response.bookTitle()).isEqualTo(testBook.getTitle());
-        assertThat(response.content()).isEqualTo("내용");
+        assertThat(response.content()).isEqualTo("테스트내용");
 
         verify(reviewRepository, times(1)).findById(reviewId);
     }
@@ -255,6 +289,7 @@ class ReviewServiceTest {
         );
 
         when(reviewRepository.getReviews(any(), any())).thenReturn(mockSlice);
+        when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
 
         // When
         reviewService.getReviews(request, requestUserId);
@@ -264,6 +299,23 @@ class ReviewServiceTest {
                 any(ReviewSearchCondition.class),
                 any(Pageable.class)
         );
+    }
+
+    @Test
+    @DisplayName("getReviews 메서드는 커서 형식에 오류가 있으면 InvalidReviewCursorException를 던진다.")
+    void getReviews_실패_커서_오류(){
+
+        // given
+        CursorPageReviewRequest request = CursorPageReviewRequest.builder()
+                .cursor("string") // 생성시간도, 평점도 아닌 값이 들어옴
+                .build();
+
+        when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.getReviews(request, requestUserId))
+                .isInstanceOf(InvalidReviewCursorException.class);
+        verify(reviewRepository, never()).getPopularReviews(any(), any());
     }
 
     @Test
@@ -291,6 +343,7 @@ class ReviewServiceTest {
                 any(PopularReviewSearchCondition.class),
                 any(Pageable.class) // Pageable 객체는 any()로 처리
         )).thenReturn(mockSlice);
+        when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
 
         // When
         CursorPageResponsePopularReviewDto response = reviewService.getPopularReviews(request, requestUserId);
@@ -310,6 +363,26 @@ class ReviewServiceTest {
     }
 
     @Test
+    @DisplayName("getPopularReviews 메서드는 커서 형식에 오류가 있으면 InvalidReviewCursorException를 던진다.")
+    void getPopularReviews_실페_커서_오류() {
+
+        // given
+        CursorPagePopularReviewRequest request = CursorPagePopularReviewRequest.builder()
+                .direction(CursorPagePopularReviewRequest.SortDirection.DESC)
+                .cursor("string") // 점수가 아닌 문자열
+                .after(testReview.getCreatedAt())
+                .limit(10)
+                .build();
+
+        when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
+
+        // when & then
+        assertThatThrownBy(() -> reviewService.getPopularReviews(request, requestUserId))
+                .isInstanceOf(InvalidReviewCursorException.class);
+        verify(reviewRepository, never()).getPopularReviews(any(), any());
+    }
+
+    @Test
     @DisplayName("updateReview 메서드는 호출 시 Review 객체의 필드값을 바꾸고 ReviewDto를 반환한다.")
     void updateReview_성공(){
 
@@ -322,6 +395,14 @@ class ReviewServiceTest {
                 .content("수정")
                 .rating(1)
                 .build();
+
+        ReviewDto mockReviewDto = ReviewDto.builder()
+                .id(reviewId)
+                .content(updateRequest.content())
+                .rating(updateRequest.rating())
+                .build();
+
+        when(reviewMapper.toDto(any(Review.class), any(User.class))).thenReturn(mockReviewDto);
 
         // when
         ReviewDto response = reviewService.updateReview(reviewId, updateRequest, userId);
@@ -339,11 +420,11 @@ class ReviewServiceTest {
     void deleteReview_성공(){
 
         // given
-        when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(testReview));
 
         // when
-        reviewService.deleteReview(reviewId, requestUserId);
+        reviewService.deleteReview(reviewId, userId);
 
         // then
         assertThat(testReview.isActive()).isFalse();
@@ -403,7 +484,7 @@ class ReviewServiceTest {
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(testReview));
 
         // when
-        ReviewLikeDto response = reviewService.likeReview(reviewId, requestUserId);
+        ReviewLikeDto response = reviewService.likeReviewToggle(reviewId, requestUserId);
 
         // then
         assertThat(response).isNotNull();
@@ -423,7 +504,7 @@ class ReviewServiceTest {
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty()); // 리뷰 없음
 
         // when & then
-        assertThatThrownBy(() -> reviewService.likeReview(reviewId, requestUserId))
+        assertThatThrownBy(() -> reviewService.likeReviewToggle(reviewId, requestUserId))
                 .isInstanceOf(ReviewNotFoundException.class);
 
         verify(reviewRepository, never()).save(any());

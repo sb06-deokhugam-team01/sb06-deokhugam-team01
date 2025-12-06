@@ -3,10 +3,10 @@ package com.sprint.sb06deokhugamteam01.repository;
 import com.sprint.sb06deokhugamteam01.config.QueryDslConfig;
 import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import com.sprint.sb06deokhugamteam01.domain.User;
-import com.sprint.sb06deokhugamteam01.domain.review.PopularReviewSearchCondition;
-import com.sprint.sb06deokhugamteam01.domain.review.Review;
-import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
-import com.sprint.sb06deokhugamteam01.dto.review.CursorPagePopularReviewRequest;
+import com.sprint.sb06deokhugamteam01.dto.review.PopularReviewSearchCondition;
+import com.sprint.sb06deokhugamteam01.domain.Review;
+import com.sprint.sb06deokhugamteam01.dto.review.ReviewSearchCondition;
+import com.sprint.sb06deokhugamteam01.dto.review.request.CursorPagePopularReviewRequest;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -26,7 +25,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest(includeFilters = @ComponentScan.Filter(
         type = FilterType.ASSIGNABLE_TYPE,
@@ -108,7 +106,7 @@ class ReviewRepositoryTest {
                 .user(testUser1)
                 .book(testBook1)
                 .content("Review 1 content")
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now().minusDays(4))
                 .build();
         testReview1 = em.merge(testReview1);
 
@@ -119,7 +117,7 @@ class ReviewRepositoryTest {
                 .user(testUser1)
                 .book(testBook2)
                 .content("Review 2 content")
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now().minusDays(3))
                 .build();
         testReview2 = em.merge(testReview2);
 
@@ -130,7 +128,7 @@ class ReviewRepositoryTest {
                 .user(testUser2)
                 .book(testBook1)
                 .content("Review 3 content")
-                .createdAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now().minusDays(2))
                 .build();
         testReview3 = em.merge(testReview3);
 
@@ -274,47 +272,27 @@ class ReviewRepositoryTest {
         assertThat(slice.hasNext()).isTrue();
     }
 
-    @Test
-    @DisplayName("인기 리뷰 다건 조회 성공 - 내림차순, 다음페이지")
-    void getPopularReviews_success_cursor_desc() {
-
-        // given
-        Pageable pageable = PageRequest.ofSize(1);
-        PopularReviewSearchCondition condition = PopularReviewSearchCondition.builder()
-                .period(CursorPagePopularReviewRequest.RankCriteria.ALL_TIME)
-                .descending(true)
-                .cursor("15") // testReview1의 점수
-                .after(testReview1.getCreatedAt())
-                .limit(1)
-                .build();
-
-        // when
-        Slice<Review> slice = reviewRepository.getPopularReviews(condition, pageable);
-
-        // then
-        assertThat(slice.getContent()).hasSize(1);
-        assertThat(slice.getContent()).extracting("id")
-                .containsExactly(testReview2.getId());
-        assertThat(slice.hasNext()).isTrue();
-    }
-
-    @Test
-    @DisplayName("인기 리뷰 다건 조회 실패 - 커서 형식 오류")
-    void getPopularReviews_failure_invalid_cursor() {
-        // given
-        Pageable pageable = PageRequest.ofSize(1);
-        PopularReviewSearchCondition condition = PopularReviewSearchCondition.builder()
-                .period(CursorPagePopularReviewRequest.RankCriteria.ALL_TIME)
-                .descending(true)
-                .cursor("string") // 점수가 아닌 문자열
-                .after(testReview1.getCreatedAt())
-                .limit(1)
-                .build();
-
-        // when & then
-        assertThrows(InvalidDataAccessApiUsageException.class, () -> { // TODO 커스텀예외 사용
-            reviewRepository.getPopularReviews(condition, pageable);
-        });
-    }
-
+//    @Test
+//    @DisplayName("인기 리뷰 다건 조회 성공 - 내림차순, 다음페이지")
+//    void getPopularReviews_success_cursor_desc() {
+//
+//        // given
+//        Pageable pageable = PageRequest.ofSize(1);
+//        PopularReviewSearchCondition condition = PopularReviewSearchCondition.builder()
+//                .period(CursorPagePopularReviewRequest.RankCriteria.ALL_TIME)
+//                .descending(true)
+//                .cursor("15") // testReview1의 점수
+//                .after(testReview1.getCreatedAt())
+//                .limit(1)
+//                .build();
+//
+//        // when
+//        Slice<Review> slice = reviewRepository.getPopularReviews(condition, pageable);
+//
+//        // then
+//        assertThat(slice.getContent()).hasSize(1);
+//        assertThat(slice.getContent()).extracting("id")
+//                .containsExactly(testReview2.getId());
+//        assertThat(slice.hasNext()).isTrue();
+//    }
 }

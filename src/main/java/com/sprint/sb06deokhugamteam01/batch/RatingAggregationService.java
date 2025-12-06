@@ -1,12 +1,12 @@
 package com.sprint.sb06deokhugamteam01.batch;
 
-import com.sprint.sb06deokhugamteam01.domain.Book;
+import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.domain.batch.BatchBookRating;
 import com.sprint.sb06deokhugamteam01.domain.batch.BatchReviewRating;
 import com.sprint.sb06deokhugamteam01.domain.batch.BatchUserRating;
 import com.sprint.sb06deokhugamteam01.domain.batch.PeriodType;
-import com.sprint.sb06deokhugamteam01.domain.review.Review;
+import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.repository.batch.BatchBookRatingRepository;
 import com.sprint.sb06deokhugamteam01.repository.batch.BatchReviewRatingRepository;
 import com.sprint.sb06deokhugamteam01.repository.user.BatchUserRatingRepository;
@@ -112,7 +112,7 @@ public class RatingAggregationService {
     ) {
         Map<UUID, Integer> likeCounts = toCountMap(em.createQuery(
                         "select rl.review.id, count(rl) "
-                                + "from ReviewLog rl "
+                                + "from ReviewLike rl "
                                 + "where rl.createdAt >= :start and rl.createdAt < :end "
                                 + "group by rl.review.id",
                         Object[].class)
@@ -175,7 +175,7 @@ public class RatingAggregationService {
     ) {
         Map<UUID, Integer> likesMade = toCountMap(em.createQuery(
                         "select rl.user.id, count(rl) "
-                                + "from ReviewLog rl "
+                                + "from ReviewLike rl "
                                 + "where rl.createdAt >= :start and rl.createdAt < :end "
                                 + "group by rl.user.id",
                         Object[].class)

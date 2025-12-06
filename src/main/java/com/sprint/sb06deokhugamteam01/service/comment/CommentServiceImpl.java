@@ -1,7 +1,7 @@
 package com.sprint.sb06deokhugamteam01.service.comment;
 
 import com.sprint.sb06deokhugamteam01.domain.Comment;
-import com.sprint.sb06deokhugamteam01.domain.review.Review;
+import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentCreateRequest;
 import com.sprint.sb06deokhugamteam01.dto.comment.CommentDto;

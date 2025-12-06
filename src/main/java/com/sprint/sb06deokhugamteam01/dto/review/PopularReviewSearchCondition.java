@@ -1,6 +1,6 @@
-package com.sprint.sb06deokhugamteam01.domain.review;
+package com.sprint.sb06deokhugamteam01.dto.review;
 
-import com.sprint.sb06deokhugamteam01.dto.review.CursorPagePopularReviewRequest;
+import com.sprint.sb06deokhugamteam01.dto.review.request.CursorPagePopularReviewRequest;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -11,6 +11,6 @@ public record PopularReviewSearchCondition(
         boolean descending,
         String cursor,
         LocalDateTime after,
-        Integer limit
+        int limit
 ) {
 }

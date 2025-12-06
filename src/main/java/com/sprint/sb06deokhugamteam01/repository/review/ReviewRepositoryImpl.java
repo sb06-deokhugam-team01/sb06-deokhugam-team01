@@ -5,11 +5,12 @@ import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.sprint.sb06deokhugamteam01.domain.review.PopularReviewSearchCondition;
-import com.sprint.sb06deokhugamteam01.domain.review.QReview;
-import com.sprint.sb06deokhugamteam01.domain.review.Review;
-import com.sprint.sb06deokhugamteam01.domain.review.ReviewSearchCondition;
-import com.sprint.sb06deokhugamteam01.dto.review.CursorPagePopularReviewRequest;
+import com.sprint.sb06deokhugamteam01.dto.review.PopularReviewSearchCondition;
+import com.sprint.sb06deokhugamteam01.domain.QReview;
+import com.sprint.sb06deokhugamteam01.domain.Review;
+import com.sprint.sb06deokhugamteam01.dto.review.ReviewSearchCondition;
+import com.sprint.sb06deokhugamteam01.dto.review.request.CursorPagePopularReviewRequest;
+import com.sprint.sb06deokhugamteam01.exception.review.InvalidReviewCursorException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -17,9 +18,10 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -31,7 +33,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     @Override
     public Slice<Review> getReviews(ReviewSearchCondition condition, Pageable pageable) {
 
-        Integer limit = condition.limit();
+        int limit = condition.limit();
         List<Review> results = queryFactory
                 .selectFrom(qReview)
                 .where(
@@ -60,7 +62,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         // SliceImpl 반환을 위한 후처리
         boolean hasNext = results.size() > limit;
         if (hasNext) {
-            results.remove(limit.intValue()); // 요청한 개수 초과분은 제거
+            results.remove(limit); // 요청한 개수 초과분은 제거
         }
 
         // Pageable은 결과가 limit보다 작거나 같으면 hasNext=false로 자동 설정됨.
@@ -100,7 +102,6 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             }
         }
     }
-    // TODO rating 기준은 (rating, createdAt, id), createdAt 기준은 (createdAt, id) 복합 인덱스 필요
 
     // 작성자 ID 완전 일치 조건
     private Predicate userIdEq(UUID userId) {
@@ -149,7 +150,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     @Override
     public Slice<Review> getPopularReviews(PopularReviewSearchCondition condition, Pageable pageable) {
 
-        Integer limit = condition.limit();
+        int limit = condition.limit();
         boolean descending = condition.descending();
         NumberExpression<Double> scoreExpression = getScoreExpression();
 
@@ -177,9 +178,9 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .fetch();
 
         // SliceImpl 반환을 위한 후처리
-        boolean hasNext = results.size() > condition.limit();
+        boolean hasNext = results.size() > limit;
         if (hasNext) {
-            results.remove(limit.intValue()); // 요청한 개수 초과분은 제거
+            results.remove(limit); // 요청한 개수 초과분은 제거
         }
 
         return new SliceImpl<>(results, pageable, hasNext);
@@ -248,8 +249,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                         );
             }
         } catch (NumberFormatException e) {
-            // TODO 커스텀 예외로 대체
-            throw new IllegalArgumentException("유효하지 않은 커서 형식입니다: " + cursor);
+            throw new InvalidReviewCursorException(detailMap("cursor", cursor));
         }
     }
 
@@ -266,5 +266,11 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     private OrderSpecifier<?> getSecondaryOrderSpecifier(boolean descending) {
         Order order = descending ? Order.DESC : Order.ASC;
         return new OrderSpecifier<>(order, qReview.createdAt);
+    }
+
+    private Map<String, Object> detailMap(String key, Object value) {
+        Map<String, Object> details = new HashMap<>();
+        details.put(key, value);
+        return details;
     }
 }

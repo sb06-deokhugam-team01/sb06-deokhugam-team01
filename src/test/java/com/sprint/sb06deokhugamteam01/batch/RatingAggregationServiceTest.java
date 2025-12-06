@@ -2,16 +2,17 @@ package com.sprint.sb06deokhugamteam01.batch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.sprint.sb06deokhugamteam01.domain.Book;
+import com.sprint.sb06deokhugamteam01.domain.ReviewLike;
+import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.domain.batch.BatchBookRating;
 import com.sprint.sb06deokhugamteam01.domain.batch.BatchReviewRating;
 import com.sprint.sb06deokhugamteam01.domain.batch.BatchUserRating;
 import com.sprint.sb06deokhugamteam01.domain.batch.PeriodType;
-import com.sprint.sb06deokhugamteam01.domain.review.Review;
+import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
-import com.sprint.sb06deokhugamteam01.repository.ReviewLogRepository;
+import com.sprint.sb06deokhugamteam01.repository.review.ReviewLikeRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import com.sprint.sb06deokhugamteam01.repository.user.UserRepository;
 import com.sprint.sb06deokhugamteam01.repository.batch.BatchBookRatingRepository;
@@ -48,7 +49,7 @@ class RatingAggregationServiceTest {
     private CommentRepository commentRepository;
 
     @Autowired
-    private ReviewLogRepository reviewLogRepository;
+    private ReviewLikeRepository reviewLikeRepository;
 
     @Autowired
     private BatchBookRatingRepository batchBookRatingRepository;
@@ -110,7 +111,7 @@ class RatingAggregationServiceTest {
                 .build());
 
         // 좋아요 로그
-        reviewLogRepository.save(com.sprint.sb06deokhugamteam01.domain.ReviewLog.builder()
+        reviewLikeRepository.save(ReviewLike.builder()
                 .review(review)
                 .user(liker)
                 .build());

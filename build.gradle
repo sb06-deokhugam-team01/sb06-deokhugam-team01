@@ -61,3 +61,10 @@ tasks.named('test') {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }
+
+// 로컬 테스트 통과 위한 임시조치
+//test {
+//    systemProperty 'NAVER_API_CLIENT_ID', 'temp_id'
+//    systemProperty 'NAVER_API_CLIENT_SECRET', 'temp_secret'
+//    systemProperty 'OCR_SPACE_API_KEY', 'temp_ocr_key'
+//}

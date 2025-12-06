@@ -1,4 +1,4 @@
-package com.sprint.sb06deokhugamteam01.dto.review;
+package com.sprint.sb06deokhugamteam01.dto.review.response;
 
 import lombok.Builder;
 
