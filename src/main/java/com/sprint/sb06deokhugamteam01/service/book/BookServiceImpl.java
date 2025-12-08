@@ -1,5 +1,6 @@
 package com.sprint.sb06deokhugamteam01.service.book;
 
+import com.sprint.sb06deokhugamteam01.domain.batch.BatchBookRating;
 import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import com.sprint.sb06deokhugamteam01.domain.book.BookOrderBy;
 import com.sprint.sb06deokhugamteam01.domain.Review;
@@ -40,8 +41,6 @@ public class BookServiceImpl implements  BookService {
     private final BookRepository bookRepository;
     private final CommentRepository commentRepository;
     private final ReviewRepository reviewRepository;
-    private final PopularBookQRepository popularBookQRepository;
-    private final BatchBookRatingRepository batchBookRatingRepository;
     private final PopularBookQRepository popularBookQRepository;
     private final BatchBookRatingRepository batchBookRatingRepository;
     private final BookSearchService bookSearchService;
