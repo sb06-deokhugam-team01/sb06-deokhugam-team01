@@ -1,6 +1,7 @@
 package com.sprint.sb06deokhugamteam01.service.comment;
 
 import com.sprint.sb06deokhugamteam01.domain.Comment;
+import com.sprint.sb06deokhugamteam01.domain.Notification;
 import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.dto.comment.request.CommentCreateRequest;
@@ -16,6 +17,7 @@ import com.sprint.sb06deokhugamteam01.exception.review.ReviewNotFoundException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
 import com.sprint.sb06deokhugamteam01.repository.user.UserRepository;
+import com.sprint.sb06deokhugamteam01.repository.notification.NotificationRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,7 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+    private final NotificationRepository notificationRepository;
 
     // 댓글 등록
     @Transactional
@@ -48,6 +51,10 @@ public class CommentServiceImpl implements CommentService {
 
         Comment comment = Comment.builder().user(user).review(review).content(request.content()).build();
         commentRepository.save(comment);
+
+        notificationRepository.save(Notification.builder().user(review.getUser()).review(review)
+                .confirmed(false).content("[" + user.getNickname() + "]님이 나의 리뷰에 댓글을 남겼습니다.").build());
+
         log.info("댓글 생성 완료: id={}", comment.getId());
         return CommentDto.from(comment);
     }
@@ -86,12 +93,12 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     @Override
     public void hardDeleteComment(UUID commentId, UUID userId) {
-        Comment comment = commentRepository.findById(commentId)
+        Comment comment = commentRepository.findByIdAndIsActiveFalse(commentId)
                 .orElseThrow(() -> new CommentNotFoundException(Map.of("commentId", commentId)));
         if (!comment.getUser().getId().equals(userId)) {
             throw new CommentAccessDeniedException(Map.of("userId", userId));
         }
-        commentRepository.delete(comment);
+        commentRepository.hardDeleteById(commentId);
         log.info("댓글 물리 삭제 완료: commentId={}", commentId);
     }
 

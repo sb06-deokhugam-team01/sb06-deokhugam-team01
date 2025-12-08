@@ -87,16 +87,10 @@ public class CommentController {
 
     // 리뷰 댓글 목록 조회
     @GetMapping
-    public ResponseEntity<CursorPageCommentResponse> getComments(@RequestParam("reviewId") UUID reviewId,
-                                                                 @RequestParam(defaultValue = "DESC") Sort.Direction direction,
-                                                                 @RequestParam(required = false) UUID cursor,
-                                                                 @RequestParam(required = false)LocalDateTime after,
-                                                                 @RequestParam(defaultValue = "50") int limit){
-        log.info("리뷰 댓글 목록 조회 요청: reviewId={}", reviewId);
-        CommentListRequest request = CommentListRequest.builder().reviewId(reviewId).direction(direction).cursor(cursor)
-                                    .after(after).limit(limit).build();
+    public ResponseEntity<CursorPageCommentResponse> getComments(@Valid @ModelAttribute CommentListRequest request){
+        log.info("리뷰 댓글 목록 조회 요청: reviewId={}", request.reviewId());
         CursorPageCommentResponse comments = commentService.getComments(request);
-        log.debug("리뷰 댓글 목록 조회 응답: reviewID={}", reviewId);
+        log.debug("리뷰 댓글 목록 조회 응답: reviewID={}", request.reviewId());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(comments);
