@@ -97,10 +97,10 @@ class BookControllerTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.nextCursor").value(response.getNextCursor()))
-                .andExpect(jsonPath("$.nextAfter").value(response.getNextAfter()))
-                .andExpect(jsonPath("$.size").value(response.getSize()))
-                .andExpect(jsonPath("$.totalElements").value(response.getTotalElements()));
+                .andExpect(jsonPath("$.nextCursor").value(response.nextCursor()))
+                .andExpect(jsonPath("$.nextAfter").value(response.nextAfter()))
+                .andExpect(jsonPath("$.size").value(response.size()))
+                .andExpect(jsonPath("$.totalElements").value(response.totalElements()));
 
     }
 

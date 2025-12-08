@@ -13,11 +13,19 @@ public interface BookRepository extends BookQRepository {
 
     boolean existsById(UUID id);
 
+    boolean existsByIdAndIsActive(UUID id, boolean isActive);
+
     boolean existsByIsbn(String isbn);
+
+    boolean existsByIsbnAndIsActive(String isbn, boolean isActive);
 
     Optional<Book> findById(UUID id);
 
+    Optional<Book> findByIdAndIsActive(UUID id, boolean isActive);
+
     Optional<Book> findByIsbn(String isbn);
+
+    Optional<Book> findByIsbnAndIsActive(String isbn, boolean isActive);
 
     void deleteById(UUID id);
 
