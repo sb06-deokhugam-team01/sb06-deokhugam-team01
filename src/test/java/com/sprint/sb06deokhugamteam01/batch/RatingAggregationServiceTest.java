@@ -2,7 +2,7 @@ package com.sprint.sb06deokhugamteam01.batch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.sprint.sb06deokhugamteam01.domain.Book;
+import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.domain.batch.BatchBookRating;
 import com.sprint.sb06deokhugamteam01.domain.batch.BatchReviewRating;
