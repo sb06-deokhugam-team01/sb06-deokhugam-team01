@@ -1,12 +1,13 @@
 package com.sprint.sb06deokhugamteam01.repository;
 
 import com.sprint.sb06deokhugamteam01.config.QueryDslConfig;
+import com.sprint.sb06deokhugamteam01.domain.batch.BatchReviewRating;
+import com.sprint.sb06deokhugamteam01.domain.batch.PeriodType;
 import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.dto.review.PopularReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.dto.review.ReviewSearchCondition;
-import com.sprint.sb06deokhugamteam01.dto.review.request.CursorPagePopularReviewRequest;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +51,10 @@ class ReviewRepositoryTest {
     private Review testReview2;
     private Review testReview3;
     private Review testReview4;
+    private BatchReviewRating batchReviewRating1;
+    private BatchReviewRating batchReviewRating2;
+    private BatchReviewRating batchReviewRating3;
+    private BatchReviewRating batchReviewRating4;
 
     @BeforeEach
     void setup() {
@@ -102,6 +107,7 @@ class ReviewRepositoryTest {
         testReview1 = Review.builder()
                 .rating(5)
                 .likeCount(50)
+                .commentCount(10)
                 .isActive(true)
                 .user(testUser1)
                 .book(testBook1)
@@ -113,6 +119,7 @@ class ReviewRepositoryTest {
         testReview2 = Review.builder()
                 .rating(4)
                 .likeCount(40)
+                .commentCount(5)
                 .isActive(true)
                 .user(testUser1)
                 .book(testBook2)
@@ -124,6 +131,7 @@ class ReviewRepositoryTest {
         testReview3 = Review.builder()
                 .rating(3)
                 .likeCount(30)
+                .commentCount(2)
                 .isActive(true)
                 .user(testUser2)
                 .book(testBook1)
@@ -135,6 +143,7 @@ class ReviewRepositoryTest {
         testReview4 = Review.builder()
                 .rating(2)
                 .likeCount(20)
+                .commentCount(1)
                 .isActive(false)
                 .user(testUser2)
                 .book(testBook2)
@@ -142,6 +151,60 @@ class ReviewRepositoryTest {
                 .createdAt(LocalDateTime.now())
                 .build();
         testReview4 = em.merge(testReview4);
+
+        LocalDate today = LocalDate.now();
+
+        batchReviewRating1 = BatchReviewRating.builder()
+                .periodType(PeriodType.ALL_TIME)
+                .periodStart(today.minusYears(1))
+                .periodEnd(today)
+                .review(testReview1)
+                .likeCount(50)
+                .commentCount(10)
+                .score(22.0) // 리뷰2와 동일 점수, 리뷰2보다 최근 생성
+                .rank(1)
+                .createdAt(LocalDateTime.now())
+                .build();
+        em.persist(batchReviewRating1);
+
+        batchReviewRating2 = BatchReviewRating.builder()
+                .periodType(PeriodType.ALL_TIME)
+                .periodStart(today.minusYears(1))
+                .periodEnd(today)
+                .review(testReview2)
+                .likeCount(40)
+                .commentCount(5)
+                .score(15.5)
+                .rank(2)
+                .createdAt(LocalDateTime.now())
+                .build();
+        em.persist(batchReviewRating2);
+
+        batchReviewRating3 = BatchReviewRating.builder()
+                .periodType(PeriodType.ALL_TIME)
+                .periodStart(today.minusYears(1))
+                .periodEnd(today)
+                .review(testReview3)
+                .likeCount(30)
+                .commentCount(2)
+                .score(10.4)
+                .rank(4)
+                .createdAt(LocalDateTime.now())
+                .build();
+        em.persist(batchReviewRating3);
+
+        batchReviewRating4 = BatchReviewRating.builder()
+                .periodType(PeriodType.ALL_TIME)
+                .periodStart(today.minusYears(1))
+                .periodEnd(today)
+                .review(testReview4)
+                .likeCount(20)
+                .commentCount(1)
+                .score(6.7)
+                .rank(4)
+                .createdAt(LocalDateTime.now())
+                .build();
+        em.persist(batchReviewRating4);
 
         em.flush();
         em.clear();
@@ -253,12 +316,15 @@ class ReviewRepositoryTest {
     }
 
     @Test
-    @DisplayName("인기 리뷰 다건 조회 성공 - 기본값")
+    @DisplayName("인기 리뷰 다건 조회 성공")
     void getPopularReviews_success() {
 
         // given
         Pageable pageable = PageRequest.ofSize(2);
+
         PopularReviewSearchCondition condition = PopularReviewSearchCondition.builder()
+                .period(PeriodType.ALL_TIME)
+                .descending(false)
                 .limit(2)
                 .build();
 
@@ -272,25 +338,25 @@ class ReviewRepositoryTest {
         assertThat(slice.hasNext()).isTrue();
     }
 
-//    @Test
-//    @DisplayName("인기 리뷰 다건 조회 성공 - 내림차순, 다음페이지")
-//    void getPopularReviews_success_cursor_desc() {
-//
-//        // given
-//        Pageable pageable = PageRequest.ofSize(1);
-//        PopularReviewSearchCondition condition = PopularReviewSearchCondition.builder()
-//                .period(CursorPagePopularReviewRequest.RankCriteria.ALL_TIME)
-//                .descending(true)
-//                .cursor("15") // testReview1의 점수
-//                .after(testReview1.getCreatedAt())
-//                .limit(1)
-//                .build();
-//
-//        // when
-//        Slice<Review> slice = reviewRepository.getPopularReviews(condition, pageable);
-//
-//        // then
-//        assertThat(slice.getContent()).hasSize(1);
+    @Test
+    @DisplayName("인기 리뷰 다건 조회 성공 - 내림차순, 다음페이지")
+    void getPopularReviews_success_cursor_desc() {
+
+        // given
+        Pageable pageable = PageRequest.ofSize(2);
+        PopularReviewSearchCondition condition = PopularReviewSearchCondition.builder()
+                .period(PeriodType.ALL_TIME)
+                .descending(true)
+                .cursor("15.5")
+                .after(testReview2.getCreatedAt())
+                .limit(2)
+                .build();
+
+        // when
+        Slice<Review> slice = reviewRepository.getPopularReviews(condition, pageable);
+
+        // then
+        assertThat(slice.getContent()).hasSize(1);
 //        assertThat(slice.getContent()).extracting("id")
 //                .containsExactly(testReview2.getId());
 //        assertThat(slice.hasNext()).isTrue();

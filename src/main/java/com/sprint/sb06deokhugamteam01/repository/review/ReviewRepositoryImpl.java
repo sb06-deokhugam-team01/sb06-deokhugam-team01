@@ -3,8 +3,12 @@ package com.sprint.sb06deokhugamteam01.repository.review;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.sprint.sb06deokhugamteam01.domain.batch.BatchReviewRating;
+import com.sprint.sb06deokhugamteam01.domain.batch.QBatchBookRating;
+import com.sprint.sb06deokhugamteam01.domain.batch.QBatchReviewRating;
 import com.sprint.sb06deokhugamteam01.dto.review.PopularReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.domain.QReview;
 import com.sprint.sb06deokhugamteam01.domain.Review;
@@ -18,10 +22,9 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -29,6 +32,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
     private final QReview qReview = QReview.review;
+    private final QBatchReviewRating qBatchReviewRating = QBatchReviewRating.batchReviewRating;
 
     @Override
     public Slice<Review> getReviews(ReviewSearchCondition condition, Pageable pageable) {
@@ -152,83 +156,66 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
         int limit = condition.limit();
         boolean descending = condition.descending();
-        NumberExpression<Double> scoreExpression = getScoreExpression();
+        BooleanExpression periodCondition = qBatchReviewRating.periodType.eq(condition.period());
 
-        List<Review> results = queryFactory
-                .selectFrom(qReview)
+        Predicate cursorCondition = batchPopularCursorCondition(
+                condition.cursor(),
+                condition.after(),
+                descending
+        );
+
+        List<BatchReviewRating> batchResults = queryFactory
+                .selectFrom(qBatchReviewRating)
+                .join(qBatchReviewRating.review, qReview)
                 .where(
-                        // 1. 기간 필터링 (DAILY, WEEKLY 등)
-                        periodCondition(condition.period()),
-                        // 2. 커서 조건 (likeCount와 createdAt 조합)
-                        popularCursorCondition(
-                                condition.cursor(),
-                                condition.after(),
-                                descending,
-                                scoreExpression
-                        ),
-                        // 3. isActive 조건 (Soft Delete 처리 가정)
+                        periodCondition,
+                        cursorCondition,
                         qReview.isActive.isTrue()
                 )
-                // 4. 정렬 조건 (likeCount -> createdAt)
                 .orderBy(
-                        getPrimaryOrderSpecifier(descending, scoreExpression),
-                        getSecondaryOrderSpecifier(descending)
+                        getBatchPrimaryOrderSpecifier(descending),
+                        getBatchSecondaryOrderSpecifier(descending)
                 )
                 .limit(limit + 1)
                 .fetch();
 
         // SliceImpl 반환을 위한 후처리
-        boolean hasNext = results.size() > limit;
+        boolean hasNext = batchResults.size() > limit;
         if (hasNext) {
-            results.remove(limit); // 요청한 개수 초과분은 제거
+            batchResults.remove(limit); // 요청한 개수 초과분은 제거
         }
 
-        return new SliceImpl<>(results, pageable, hasNext);
+        // 요청된 개수만큼만 자르기
+        List<BatchReviewRating> limitedBatchResults = hasNext ? batchResults.subList(0, limit) : batchResults;
+
+        // Review ID 추출 및 Review 엔티티 조회 (N+1 방지 대신 ID List 조회 방식 사용)
+        List<UUID> reviewIds = limitedBatchResults.stream()
+                .map(rating -> rating.getReview().getId())
+                .collect(Collectors.toList());
+
+        List<Review> results = queryFactory
+                .selectFrom(qReview)
+                .where(qReview.id.in(reviewIds))
+                .fetch();
+
+        // Batch 조회 결과의 순서를 Review에 적용
+        Map<UUID, Review> reviewMap = results.stream().collect(Collectors.toMap(Review::getId, Function.identity()));
+        List<Review> orderedReviews = limitedBatchResults.stream()
+                .map(r -> reviewMap.get(r.getReview().getId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return new SliceImpl<>(orderedReviews, pageable, hasNext);
     }
 
     /**
-     * likeCount와 commentCount를 Double로 변환하여 점수 계산
+     where절 Predicate 생성 메서드
      */
-    private NumberExpression<Double> getScoreExpression() {
-
-        // null 값 안전을 위해 coalesce(0)을 적용
-        return qReview.likeCount.coalesce(0).doubleValue().multiply(0.3)
-                .add(qReview.commentCount.coalesce(0).doubleValue().multiply(0.7));
-    }
-
-    /**
-     where절 Predicate 생성 메서드들
-     */
-    // 기간에 따른 createdAt 필터링 조건 생성
-    private Predicate periodCondition(CursorPagePopularReviewRequest.RankCriteria period) {
-        if (period == null || period == CursorPagePopularReviewRequest.RankCriteria.ALL_TIME) {
-            return null;
-        }
-
-        LocalDateTime startDateTime;
-        switch (period) {
-            case DAILY:
-                startDateTime = LocalDateTime.now().minusDays(1);
-                break;
-            case WEEKLY:
-                startDateTime = LocalDateTime.now().minusWeeks(1);
-                break;
-            case MONTHLY:
-                startDateTime = LocalDateTime.now().minusMonths(1);
-                break;
-            default:
-                return null;
-        }
-        // startDateTime 이후에 생성된 리뷰만 포함
-        return qReview.createdAt.goe(startDateTime); // goe = greater or equal
-    }
-
-    // 인기 순위 커서 조건 (likeCount와 createdAt 조합)
-    private Predicate popularCursorCondition(
+    // 인기 순위 커서 조건 (score와 createdAt 조합)
+    private Predicate batchPopularCursorCondition(
             String cursor,
             LocalDateTime after,
-            boolean descending,
-            NumberExpression<Double> scoreExpression
+            boolean descending
     ) {
         if (cursor == null) {
             return null; // 첫 페이지 조회
@@ -237,17 +224,29 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         try {
             Double cursorScore = Double.parseDouble(cursor);
 
+            BooleanExpression scoreCondition;
             if (descending) {
-                return scoreExpression.lt(cursorScore)
-                        .or(
-                                scoreExpression.eq(cursorScore).and(qReview.createdAt.lt(after))
-                        );
+                scoreCondition = qBatchReviewRating.score.lt(cursorScore);
             } else {
-                return scoreExpression.gt(cursorScore)
-                        .or(
-                                scoreExpression.eq(cursorScore).and(qReview.createdAt.gt(after))
-                        );
+                scoreCondition = qBatchReviewRating.score.gt(cursorScore);
             }
+
+            if (after == null) {
+                return scoreCondition;
+            }
+
+            BooleanExpression tieBreakerCondition;
+            if (descending) {
+                tieBreakerCondition = qBatchReviewRating.score.eq(cursorScore)
+                        .and(qReview.createdAt.lt(after));
+            } else {
+                // ASC: score가 같으면 qReview.createdAt은 더 커야 함 (더 최신 시간)
+                tieBreakerCondition = qBatchReviewRating.score.eq(cursorScore)
+                        .and(qReview.createdAt.gt(after));
+            }
+
+            return scoreCondition.or(tieBreakerCondition);
+
         } catch (NumberFormatException e) {
             throw new InvalidReviewCursorException(detailMap("cursor", cursor));
         }
@@ -256,14 +255,14 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     /**
      OrderSpecifier 생성 메서드
      */
-    // 주 정렬 조건 (Primary)
-    private OrderSpecifier<?> getPrimaryOrderSpecifier(boolean descending, NumberExpression<Double> scoreExpression) {
+    // 주 정렬 조건 (점수)
+    private OrderSpecifier<?> getBatchPrimaryOrderSpecifier(boolean descending) {
         Order order = descending ? Order.DESC : Order.ASC;
-        return new OrderSpecifier<>(order, scoreExpression);
+        return new OrderSpecifier<>(order, qBatchReviewRating.score);
     }
 
-    // 보조 정렬 조건 (Secondary/Tie-breaker)
-    private OrderSpecifier<?> getSecondaryOrderSpecifier(boolean descending) {
+    // 보조 정렬 조건 (생성일시)
+    private OrderSpecifier<?> getBatchSecondaryOrderSpecifier(boolean descending) {
         Order order = descending ? Order.DESC : Order.ASC;
         return new OrderSpecifier<>(order, qReview.createdAt);
     }

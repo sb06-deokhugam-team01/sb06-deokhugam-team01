@@ -1,6 +1,7 @@
 package com.sprint.sb06deokhugamteam01.service.review;
 
 import com.sprint.sb06deokhugamteam01.domain.ReviewLike;
+import com.sprint.sb06deokhugamteam01.domain.batch.PeriodType;
 import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.domain.User;
@@ -80,6 +81,8 @@ public class ReviewServiceImpl implements ReviewService {
 
         Review savedReview = reviewRepository.save(review);
 
+        // TODO Book의 reviewCount 1 증가
+        // TODO Book의 Rating 업데이트
         return reviewMapper.toDto(savedReview, user);
     }
 
@@ -219,10 +222,10 @@ public class ReviewServiceImpl implements ReviewService {
                 = request.direction() != null
                 ? request.direction()
                 : CursorPagePopularReviewRequest.SortDirection.ASC;
-        CursorPagePopularReviewRequest.RankCriteria period
+        PeriodType period
                 = request.period() != null
                 ? request.period()
-                : CursorPagePopularReviewRequest.RankCriteria.DAILY;
+                : PeriodType.DAILY;
 
         boolean descending = (sortDirection == CursorPagePopularReviewRequest.SortDirection.DESC);
 
@@ -294,6 +297,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
         if (updateRequest.rating() != null) {
             review.updateRating(updateRequest.rating());
+            // TODO Book의 Rating 업데이트
         }
 
         Review savedReview = reviewRepository.save(review);
@@ -314,6 +318,8 @@ public class ReviewServiceImpl implements ReviewService {
         if (!review.getUser().getId().equals(user.getId())) {
             throw new InvalidUserException(detailMap("userId", requestUserId));
         }
+        // TODO Book의 reviewCount 1 감소
+        // TODO Book의 Rating 업데이트
 
         review.softDelete();
         reviewRepository.save(review);
@@ -329,9 +335,18 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(detailMap("reviewId", reviewId)));
 
+        Book book = review.getBook();
+
+        // TODO Book의 reviewCount 1 감소 (soft delete 상태면 건너뜀)
+        // if (review.isActive()) book.decreaseReviewCount();
+
         commentRepository.deleteAllByReview(review);
         reviewLikeRepository.deleteByReview(review);
         reviewRepository.delete(review);
+
+        // TODO Book의 Rating 업데이트
+        // book.calculateRating();
+        // bookRepository.save(book);
     }
 
     @Override

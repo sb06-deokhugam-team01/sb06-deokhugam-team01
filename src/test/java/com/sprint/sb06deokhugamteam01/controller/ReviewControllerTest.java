@@ -1,6 +1,7 @@
 package com.sprint.sb06deokhugamteam01.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sprint.sb06deokhugamteam01.domain.batch.PeriodType;
 import com.sprint.sb06deokhugamteam01.dto.review.request.CursorPagePopularReviewRequest;
 import com.sprint.sb06deokhugamteam01.dto.review.request.CursorPageReviewRequest;
 import com.sprint.sb06deokhugamteam01.dto.review.request.ReviewCreateRequest;
@@ -79,7 +80,7 @@ class ReviewControllerTest {
         ReviewCreateRequest request = ReviewCreateRequest.builder()
                 .bookId(bookId)
                 .userId(userId)
-                .content("생성 테스트 내용 - 20자를 넘는 정상 요청")
+                .content("생성 테스트 내용 - 정상 요청")
                 .rating(5)
                 .build();
 
@@ -102,15 +103,15 @@ class ReviewControllerTest {
                 .andExpect(jsonPath("$.content").value(request.content()));
     }
 
-    /*@Test
-    @DisplayName("리뷰 생성 실패 - 본문 글자수 미달")
+    @Test
+    @DisplayName("리뷰 생성 실패 - 본문 공백문자")
     void createReview_failure() throws Exception {
 
         // given
         ReviewCreateRequest invalidRequest = ReviewCreateRequest.builder()
                 .bookId(bookId)
                 .userId(userId)
-                .content("잘못된 본문 - 20자보다 짧음")
+                .content("")
                 .rating(5)
                 .build();
 
@@ -119,7 +120,7 @@ class ReviewControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
-    }*/
+    }
 
     @Test
     @DisplayName("리뷰 단건 조회 성공")
@@ -182,7 +183,7 @@ class ReviewControllerTest {
 
         // given
         CursorPagePopularReviewRequest request = CursorPagePopularReviewRequest.builder()
-                .period(CursorPagePopularReviewRequest.RankCriteria.DAILY)
+                .period(PeriodType.DAILY)
                 .limit(10)
                 .build();
 
@@ -217,7 +218,7 @@ class ReviewControllerTest {
 
         // given
         CursorPagePopularReviewRequest request = CursorPagePopularReviewRequest.builder()
-                .period(CursorPagePopularReviewRequest.RankCriteria.DAILY)
+                .period(PeriodType.DAILY)
                 .limit(-1)
                 .build();
 

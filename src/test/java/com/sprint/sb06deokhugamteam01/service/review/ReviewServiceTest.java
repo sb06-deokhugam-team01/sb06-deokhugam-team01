@@ -1,5 +1,6 @@
 package com.sprint.sb06deokhugamteam01.service.review;
 
+import com.sprint.sb06deokhugamteam01.domain.batch.PeriodType;
 import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import com.sprint.sb06deokhugamteam01.dto.review.PopularReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.domain.Review;
@@ -324,7 +325,7 @@ class ReviewServiceTest {
 
         // Given
         CursorPagePopularReviewRequest request = CursorPagePopularReviewRequest.builder()
-                .period(CursorPagePopularReviewRequest.RankCriteria.WEEKLY) // 주간 랭킹 조회 요청
+                .period(PeriodType.WEEKLY) // 주간 랭킹 조회 요청
                 .direction(CursorPagePopularReviewRequest.SortDirection.DESC)
                 .cursor(null)
                 .after(null)
