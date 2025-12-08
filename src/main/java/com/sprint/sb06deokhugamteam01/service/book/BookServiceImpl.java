@@ -152,12 +152,12 @@ public class BookServiceImpl implements  BookService {
             throw new BookNotFoundException(detailMap("id", id));
         }
 
-        bookRepository.deleteById(id);
-
         //연관관계 매핑된 리뷰들 모두 삭제하기
         List<Review> reviewList = reviewRepository.findByBook_Id(id);
         commentRepository.deleteByReviewIn(reviewList);
         reviewRepository.deleteByBook_Id(id);
+
+        bookRepository.deleteById(id);
 
     }
 
