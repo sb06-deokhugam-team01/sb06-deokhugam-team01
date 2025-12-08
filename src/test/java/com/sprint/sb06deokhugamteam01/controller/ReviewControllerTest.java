@@ -80,7 +80,7 @@ class ReviewControllerTest {
         ReviewCreateRequest request = ReviewCreateRequest.builder()
                 .bookId(bookId)
                 .userId(userId)
-                .content("생성 테스트 내용 - 20자를 넘는 정상 요청")
+                .content("생성 테스트 내용 - 정상 요청")
                 .rating(5)
                 .build();
 
@@ -104,14 +104,14 @@ class ReviewControllerTest {
     }
 
     @Test
-    @DisplayName("리뷰 생성 실패 - 본문 글자수 미달")
+    @DisplayName("리뷰 생성 실패 - 본문 공백문자")
     void createReview_failure() throws Exception {
 
         // given
         ReviewCreateRequest invalidRequest = ReviewCreateRequest.builder()
                 .bookId(bookId)
                 .userId(userId)
-                .content("잘못된 본문 - 20자보다 짧음")
+                .content("")
                 .rating(5)
                 .build();
 

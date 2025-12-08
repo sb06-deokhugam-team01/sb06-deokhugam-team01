@@ -79,6 +79,8 @@ public class ReviewServiceImpl implements ReviewService {
 
         Review savedReview = reviewRepository.save(review);
 
+        // TODO Book의 reviewCount 1 증가
+        // TODO Book의 Rating 업데이트
         return reviewMapper.toDto(savedReview, user);
     }
 
@@ -293,6 +295,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
         if (updateRequest.rating() != null) {
             review.updateRating(updateRequest.rating());
+            // TODO Book의 Rating 업데이트
         }
 
         Review savedReview = reviewRepository.save(review);
@@ -313,6 +316,8 @@ public class ReviewServiceImpl implements ReviewService {
         if (!review.getUser().getId().equals(user.getId())) {
             throw new InvalidUserException(detailMap("userId", requestUserId));
         }
+        // TODO Book의 reviewCount 1 감소
+        // TODO Book의 Rating 업데이트
 
         review.softDelete();
         reviewRepository.save(review);
@@ -328,6 +333,8 @@ public class ReviewServiceImpl implements ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(detailMap("reviewId", reviewId)));
 
+        // TODO Book의 reviewCount 1 감소 (soft delete 상태면 건너뜀)
+        // TODO Book의 Rating 업데이트
         commentRepository.deleteAllByReview(review);
         reviewLikeRepository.deleteByReview(review);
         reviewRepository.delete(review);
