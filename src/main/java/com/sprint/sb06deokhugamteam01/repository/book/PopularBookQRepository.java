@@ -74,7 +74,7 @@ public interface PopularBookQRepository extends QuerydslJpaRepository<BatchBookR
                 builder.and(qBook.id.lt(UUID.fromString(request.cursor())));
             }
 
-        } else {
+        } else if (request.after() != null) {
             if (request.direction() == PagingPopularBookRequest.SortDirection.ASC) {
                 builder.and(qBook.createdAt.gt(request.after()));
             } else {

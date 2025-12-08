@@ -3,11 +3,13 @@ package com.sprint.sb06deokhugamteam01.dto.book.request;
 import com.sprint.sb06deokhugamteam01.domain.batch.PeriodType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
 
+@Builder
 public record PagingPopularBookRequest(
         @NotNull(message = "period는 비어 있을 수 없습니다.")
         PeriodType period,
