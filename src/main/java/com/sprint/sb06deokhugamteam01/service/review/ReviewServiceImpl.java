@@ -155,7 +155,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .ascending(ascending)
                 .cursor(request.cursor())
                 .after(request.after())
-                .limit(request.limit())
+                .limit(limit)
                 .build();
 
         Slice<Review> slice
@@ -238,7 +238,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .descending(descending)
                 .cursor(request.cursor())
                 .after(request.after())
-                .limit(request.limit())
+                .limit(limit)
                 .build();
 
         Slice<Review> slice = reviewRepository.getPopularReviews(condition, pageable);
