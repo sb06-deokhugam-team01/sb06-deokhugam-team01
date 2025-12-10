@@ -34,7 +34,7 @@ public class NotificationController {
     ) {
         return ResponseEntity.ok(
             NotificationDto.fromEntity(notificationService.updateNotification(notificationId, userId,
-                request.isRead())));
+                request.isConfirmed())));
     }
 
     @GetMapping
