@@ -1,5 +1,6 @@
 package com.sprint.sb06deokhugamteam01.domain;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -31,7 +32,7 @@ public class ReviewLike {
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "review_id")
     private Review review;
 
