@@ -200,8 +200,8 @@ public class BookServiceImpl implements  BookService {
             throw new BookNotFoundException(detailMap("id", id));
         }
 
-        book.softDelete();
         reviewRepository.deleteByBook_Id(id);
+        book.softDelete();
 
     }
 
