@@ -29,7 +29,7 @@ public class NotificationServiceImpl implements NotificationService {
             .orElseThrow(() -> new NotificationNotFoundException(Map.of("notificationId", notificationId)));
 
         if(optionalNotification.getUser().getId() != userId) {
-            throw new UnauthorizedAccessException(Map.of("notificationId", notificationId));
+            throw new UnauthorizedAccessException(Map.of("userId", userId, "notificationId", notificationId));
         }
 
         optionalNotification.changeConfirm(confirmed);
