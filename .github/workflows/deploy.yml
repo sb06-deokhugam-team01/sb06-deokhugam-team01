@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - release
   workflow_dispatch:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_ALIAS: ${{ secrets.ECR_ALIAS }}
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
   ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
@@ -43,7 +45,7 @@ jobs:
         env:
           AWS_REGION: ${{ env.AWS_REGION }}
         run: |
-          aws ecr-public get-login-password --region ap-northeast-2 | \
+          aws ecr get-login-password --region ap-northeast-2 | \
             docker login --username AWS --password-stdin 136399769945.dkr.ecr.ap-northeast-2.amazonaws.com
 
       - name: Set image metadata
