@@ -28,6 +28,7 @@ public interface PopularBookQRepository extends QuerydslJpaRepository<BatchBookR
 
         List<BatchBookRating> ratingList = selectFrom(qBatchBookRating)
                 .join(qBatchBookRating.book, qBook)
+                .fetchJoin()
                 .where(
                         qBatchBookRating.periodType.eq(request.period()),
                         buildPeriodPredicate(request),

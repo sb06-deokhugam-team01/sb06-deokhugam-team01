@@ -99,10 +99,11 @@ public class BookServiceImpl implements  BookService {
 
         return CursorPopularPageResponseBookDto.builder()
                 .content(bookSlice.getContent().stream().map(
-                        batchBookRating -> PopularBookDto.fromEntity(
-                                batchBookRating.getBook(),
-                                batchBookRating
-                )).toList())
+                        batchBookRating -> {
+                            String presignedUrl = s3StorageService.getPresignedUrl(batchBookRating.getBook().getThumbnailUrl());
+                            return PopularBookDto.fromEntityWithImageUrl(batchBookRating.getBook(), batchBookRating, presignedUrl);
+                        }
+                ).toList())
                 .nextCursor(bookSlice.hasNext() ?
                         bookSlice.getContent().get(bookSlice.getContent().size() -1).getBook().getId().toString() : null)
                 .nextAfter(bookSlice.hasNext() ?
