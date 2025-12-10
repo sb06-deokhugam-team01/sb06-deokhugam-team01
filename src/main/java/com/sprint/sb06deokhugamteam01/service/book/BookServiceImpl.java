@@ -201,6 +201,7 @@ public class BookServiceImpl implements  BookService {
         }
 
         book.softDelete();
+        reviewRepository.deleteByBook_Id(id);
 
     }
 

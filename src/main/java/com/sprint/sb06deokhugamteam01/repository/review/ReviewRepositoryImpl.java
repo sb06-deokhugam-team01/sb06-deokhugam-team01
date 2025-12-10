@@ -6,9 +6,11 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.sprint.sb06deokhugamteam01.domain.QComment;
 import com.sprint.sb06deokhugamteam01.domain.batch.BatchReviewRating;
 import com.sprint.sb06deokhugamteam01.domain.batch.QBatchBookRating;
 import com.sprint.sb06deokhugamteam01.domain.batch.QBatchReviewRating;
+import com.sprint.sb06deokhugamteam01.domain.book.QBook;
 import com.sprint.sb06deokhugamteam01.dto.review.PopularReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.domain.QReview;
 import com.sprint.sb06deokhugamteam01.domain.Review;
@@ -32,6 +34,8 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
     private final QReview qReview = QReview.review;
+    private final QBook qBook = QBook.book;
+    private final QComment qComment = QComment.comment;
     private final QBatchReviewRating qBatchReviewRating = QBatchReviewRating.batchReviewRating;
 
     @Override
@@ -208,6 +212,21 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .collect(Collectors.toList());
 
         return new SliceImpl<>(orderedReviews, pageable, hasNext);
+    }
+
+    @Override
+    public void deleteByBookId(UUID bookId) {
+
+        queryFactory.update(qComment)
+                .where(qComment.review.book.id.eq(bookId))
+                .set(qComment.isActive, false)
+                .execute();
+
+        queryFactory.update(qReview)
+                .where(qReview.book.id.eq(bookId))
+                .set(qReview.isActive, false)
+                .execute();
+
     }
 
     /**
