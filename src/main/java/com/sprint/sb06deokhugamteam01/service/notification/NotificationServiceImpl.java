@@ -34,8 +34,7 @@ public class NotificationServiceImpl implements NotificationService {
             throw new UnauthorizedAccessException(Map.of("userId", userId, "notificationId", notificationId));
         }
 
-        optionalNotification.changeConfirm(confirmed);
-        notificationRepository.save(optionalNotification);
+        optionalNotification.confirm();
 
         return optionalNotification;
     }

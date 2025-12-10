@@ -84,13 +84,28 @@ public class RatingAggregationService {
                 .setParameter("end", endExclusive)
                 .getResultList();
 
-        List<BookSnapshot> snapshots = new ArrayList<>();
+        Map<UUID, Long> reviewCountMap = new HashMap<>();
+        Map<UUID, Double> avgRatingMap = new HashMap<>();
         for (Object[] row : rows) {
             UUID bookId = (UUID) row[0];
             long reviewCount = (long) row[1];
             Double avgRating = (Double) row[2];
+            reviewCountMap.put(bookId, reviewCount);
+            avgRatingMap.put(bookId, Optional.ofNullable(avgRating).orElse(0.0d));
+        }
 
-            double score = (reviewCount * 0.4d) + (Optional.ofNullable(avgRating).orElse(0.0d) * 0.6d);
+        // 모든 활성화된 책에 대해 스냅샷을 생성하거나 갱신한다.
+        List<UUID> allBookIds = em.createQuery(
+                "select b.id from Book b where b.isActive = true",
+                UUID.class
+        ).getResultList();
+
+        List<BookSnapshot> snapshots = new ArrayList<>();
+        for (UUID bookId : allBookIds) {
+            long reviewCount = reviewCountMap.getOrDefault(bookId, 0L);
+            double avgRating = avgRatingMap.getOrDefault(bookId, 0.0d);
+
+            double score = (reviewCount * 0.4d) + (avgRating * 0.6d);
 
             BatchBookRating entity = batchBookRatingRepository
                     .findByPeriodTypeAndPeriodStartAndPeriodEndAndBook_Id(periodType, periodStart, periodEnd, bookId)
@@ -102,7 +117,7 @@ public class RatingAggregationService {
                     periodEnd,
                     null,
                     (int) reviewCount,
-                    Optional.ofNullable(avgRating).orElse(0.0d),
+                    avgRating,
                     score,
                     null
             );
@@ -111,7 +126,7 @@ public class RatingAggregationService {
                     entity,
                     em.getReference(Book.class, bookId),
                     (int) reviewCount,
-                    Optional.ofNullable(avgRating).orElse(0.0d),
+                    avgRating,
                     score
             ));
         }
@@ -160,9 +175,12 @@ public class RatingAggregationService {
                 .setParameter("end", endExclusive)
                 .getResultList());
 
-        Set<UUID> reviewIds = new HashSet<>();
-        reviewIds.addAll(likeCounts.keySet());
-        reviewIds.addAll(commentCounts.keySet());
+        // 모든 활성 리뷰를 대상으로 랭킹 생성
+        List<UUID> allReviewIds = em.createQuery(
+                "select r.id from Review r where r.isActive = true",
+                UUID.class
+        ).getResultList();
+        Set<UUID> reviewIds = new HashSet<>(allReviewIds);
 
         Map<UUID, Double> reviewScores = new HashMap<>();
         List<ReviewSnapshot> snapshots = new ArrayList<>();
@@ -258,6 +276,9 @@ public class RatingAggregationService {
         }
 
         Set<UUID> userIds = new HashSet<>();
+        // 모든 활성 사용자 포함
+        userRepository.findAll().forEach(user -> userIds.add(user.getId()));
+        // 활동이 있는 사용자 추가(중복 허용)
         userIds.addAll(likesMade.keySet());
         userIds.addAll(commentsMade.keySet());
         userIds.addAll(reviewPopularitySum.keySet());

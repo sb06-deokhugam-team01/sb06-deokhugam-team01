@@ -36,58 +36,48 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserRegisterRequest userRegisterRequest) {
-        log.info("Received user registration request: {}", userRegisterRequest);
         UserDto userDto = UserDto.from(userService.createUser(userRegisterRequest));
-        log.info("User registered successfully: {}", userDto);
         return new ResponseEntity<>(userDto, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
     public ResponseEntity<UserDto> loginUser(@Valid @RequestBody UserLoginRequest userLoginRequest){
-        log.info("Received user login request: {}", userLoginRequest);
         UserDto userDto = UserDto.from(userService.login(userLoginRequest.email(), userLoginRequest.password()));
-        log.info("User logged in successfully: {}", userDto);
         return ResponseEntity.ok(userDto);
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserDto> getUser(@PathVariable UUID userId){
-        log.info("Received user get request: {}", userId);
         UserDto userDto = UserDto.from(userService.getUser(userId));
-        log.info("User retrieved successfully: {}", userDto);
         return ResponseEntity.ok(userDto);
     }
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<UserDto> deleteUser(@PathVariable UUID userId, @RequestHeader("Deokhugam-Request-User-ID") UUID currentUserId) {
-        log.info("Received user delete request: {}", userId);
         UserDto userDto = UserDto.from(userService.deleteUser(userId, currentUserId));
-        log.info("User deleted successfully: {}", userDto);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{userId}")
     public ResponseEntity<UserDto> updateUser(@PathVariable UUID userId, @Valid @RequestBody String request,
         @RequestHeader("Deokhugam-Request-User-ID") UUID currentUserId) {
-        log.info("Received user update request for user: {} with nickname: {}", userId, request);
-        UserDto userDto = UserDto.from(userService.updateUser(userId, request, currentUserId));
-        log.info("User updated successfully: {}", userDto);
+        String trimmedRequest = request.trim();
+        if(trimmedRequest.startsWith("\"") && trimmedRequest.endsWith("\"") && trimmedRequest.length() >= 2) {
+            trimmedRequest = trimmedRequest.substring(1, trimmedRequest.length() - 1);
+        }
+        UserDto userDto = UserDto.from(userService.updateUser(userId, trimmedRequest, currentUserId));
         return ResponseEntity.ok(userDto);
     }
 
     @DeleteMapping("/{userId}/hard")
     public ResponseEntity<Void> hardDeleteUser(@PathVariable UUID userId){
-        log.info("Received hard delete request for user: {}", userId);
         userService.hardDeleteUser(userId);
-        log.info("User hard deleted successfully: {}", userId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/power")
     public ResponseEntity<CursorPageResponsePowerUserDto> getPowerUserList(@ModelAttribute PowerUserRequest powerUserRequest){
-        log.info("Received power user list request: {}", powerUserRequest);
         CursorPageResponsePowerUserDto response = userService.getPowerUserList(powerUserRequest);
-        log.info("Power user list retrieved successfully: {}", response);
         return ResponseEntity.ok(response);
     }
 
