@@ -52,7 +52,8 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                         bookIdEq(condition.bookId()),
                         keywordContains(condition.keyword()),
                         // soft delete 고려
-                        qReview.isActive.isTrue()
+                        qReview.isActive.isTrue(),
+                        qReview.book.isActive
                 )
                 .orderBy(
                         // 주 정렬 조건
@@ -170,7 +171,8 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .where(
                         periodCondition,
                         cursorCondition,
-                        qReview.isActive.isTrue()
+                        qReview.isActive.isTrue(),
+                        qReview.book.isActive
                 )
                 .orderBy(
                         getBatchPrimaryOrderSpecifier(descending),
