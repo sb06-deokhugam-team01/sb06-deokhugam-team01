@@ -107,23 +107,10 @@ public class RatingAggregationService {
 
             double score = (reviewCount * 0.4d) + (avgRating * 0.6d);
 
-            BatchBookRating entity = batchBookRatingRepository
-                    .findByPeriodTypeAndPeriodStartAndPeriodEndAndBook_Id(periodType, periodStart, periodEnd, bookId)
-                    .orElseGet(() -> BatchBookRating.builder().build());
-
-            entity.applySnapshot(
-                    periodType,
-                    periodStart,
-                    periodEnd,
-                    null,
-                    (int) reviewCount,
-                    avgRating,
-                    score,
-                    null
-            );
-
             snapshots.add(new BookSnapshot(
-                    entity,
+                    batchBookRatingRepository
+                        .findByPeriodTypeAndPeriodStartAndPeriodEndAndBook_Id(periodType, periodStart, periodEnd, bookId)
+                        .orElseGet(() -> BatchBookRating.builder().build()),
                     em.getReference(Book.class, bookId),
                     (int) reviewCount,
                     avgRating,
@@ -192,23 +179,10 @@ public class RatingAggregationService {
             double score = (likes * 0.3d) + (comments * 0.7d);
             reviewScores.put(reviewId, score);
 
-            BatchReviewRating entity = batchReviewRatingRepository
-                    .findByPeriodTypeAndPeriodStartAndPeriodEndAndReview_Id(periodType, periodStart, periodEnd, reviewId)
-                    .orElseGet(() -> BatchReviewRating.builder().build());
-
-            entity.applySnapshot(
-                    periodType,
-                    periodStart,
-                    periodEnd,
-                    null,
-                    likes,
-                    comments,
-                    score,
-                    null
-            );
-
             snapshots.add(new ReviewSnapshot(
-                    entity,
+                    batchReviewRatingRepository
+                        .findByPeriodTypeAndPeriodStartAndPeriodEndAndReview_Id(periodType, periodStart, periodEnd, reviewId)
+                        .orElseGet(() -> BatchReviewRating.builder().build()),
                     em.getReference(Review.class, reviewId),
                     likes,
                     comments,
@@ -291,24 +265,10 @@ public class RatingAggregationService {
 
             double score = (popularity * 0.5d) + (likes * 0.2d) + (comments * 0.3d);
 
-            BatchUserRating entity = batchUserRatingRepository
-                    .findByPeriodTypeAndPeriodStartAndPeriodEndAndUser_Id(periodType, periodStart, periodEnd, userId)
-                    .orElseGet(() -> BatchUserRating.builder().build());
-
-            entity.applySnapshot(
-                    periodType,
-                    periodStart,
-                    periodEnd,
-                    null,
-                    popularity,
-                    likes,
-                    comments,
-                    score,
-                    null
-            );
-
             snapshots.add(new UserSnapshot(
-                    entity,
+                    batchUserRatingRepository
+                        .findByPeriodTypeAndPeriodStartAndPeriodEndAndUser_Id(periodType, periodStart, periodEnd, userId)
+                        .orElseGet(() -> BatchUserRating.builder().build()),
                     em.getReference(User.class, userId),
                     popularity,
                     likes,
