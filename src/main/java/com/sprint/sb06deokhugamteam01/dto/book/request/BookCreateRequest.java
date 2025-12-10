@@ -17,6 +17,7 @@ public record BookCreateRequest(
         @Max(value = 255, message = "저자는 최대 255자까지 입력할 수 있습니다.")
         String author,
         @NotNull(message = "설명은 비어 있을 수 없습니다.")
+        @Max(value = 1000, message = "설명은 최대 1000자까지 입력할 수 있습니다.")
         String description,
         @NotBlank(message = "출판사는 비어 있을 수 없습니다.")
         @Max(value = 255, message = "출판사는 최대 255자까지 입력할 수 있습니다.")
