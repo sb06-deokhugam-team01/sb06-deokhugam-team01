@@ -13,7 +13,6 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
     List<Notification> findAllByUserIdAndConfirmedFalse(UUID userId);
 
-
     @Modifying
     void deleteByConfirmedIsTrueAndUpdatedAtBefore(LocalDateTime threshold);
 }

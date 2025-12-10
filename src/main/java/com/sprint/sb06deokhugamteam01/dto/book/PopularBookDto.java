@@ -39,4 +39,21 @@ public record PopularBookDto(
 
     }
 
+    public static PopularBookDto fromEntityWithImageUrl(Book book, BatchBookRating batchBookRating, String imageUrl) {
+        return PopularBookDto.builder()
+                .id(batchBookRating.getId().toString())
+                .bookId(book.getId().toString())
+                .title(book.getTitle())
+                .author(book.getAuthor())
+                .thumbnailUrl(imageUrl)
+                .period(batchBookRating.getPeriodType())
+                .rank(Long.valueOf(batchBookRating.getRank()))
+                .score(batchBookRating.getScore())
+                .reviewCount((long) book.getReviewCount())
+                .rating(book.getRating())
+                .createdAt(batchBookRating.getCreatedAt())
+                .build();
+
+    }
+
 }

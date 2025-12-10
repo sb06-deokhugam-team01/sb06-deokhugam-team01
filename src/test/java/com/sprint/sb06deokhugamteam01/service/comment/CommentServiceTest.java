@@ -197,8 +197,9 @@ public class CommentServiceTest {
         UUID userId = UUID.randomUUID();
 
         User user = User.builder().build();
+        Review review =  Review.builder().build();
         ReflectionTestUtils.setField(user, "id", userId);
-        Comment comment = Comment.builder().user(user).build();
+        Comment comment = Comment.builder().user(user).review(review).build();
         ReflectionTestUtils.setField(comment, "id", commentId);
 
         given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
@@ -250,8 +251,9 @@ public class CommentServiceTest {
         UUID userId = UUID.randomUUID();
 
         User user = User.builder().build();
+        Review review =  Review.builder().build();
         ReflectionTestUtils.setField(user, "id", userId);
-        Comment comment = Comment.builder().user(user).build();
+        Comment comment = Comment.builder().user(user).review(review).build();
         ReflectionTestUtils.setField(comment, "id", commentId);
 
         given(commentRepository.findByIdAndIsActiveFalse(commentId)).willReturn(Optional.of(comment));

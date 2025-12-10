@@ -33,7 +33,7 @@ public class NotificationController {
         @RequestBody UpdateNotificationRequest request
     ) {
         return ResponseEntity.ok(
-            NotificationDto.fromEntity(notificationService.updateNotification(userId, notificationId,
+            NotificationDto.fromEntity(notificationService.updateNotification(notificationId, userId,
                 request.isRead())));
     }
 

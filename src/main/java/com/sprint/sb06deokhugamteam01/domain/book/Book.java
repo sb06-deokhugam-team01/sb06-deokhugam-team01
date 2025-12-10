@@ -78,11 +78,7 @@ public class Book {
         this.thumbnailUrl = thumbnailUrl;
     }
 
-    public void updateRating(double rating) {
-        this.rating = rating;
-    }
-
-    public void addNewReview(double score) {
+    public void updateRatingOnNewReview(double score) {
 
         double totalScore = this.rating * this.reviewCount;
         totalScore += score;
@@ -91,7 +87,15 @@ public class Book {
 
     }
 
-    public void removeReview(double score) {
+    public void updateRatingOnReviewUpdate(double oldScore, double newScore) {
+
+        double totalScore = this.rating * this.reviewCount;
+        totalScore = totalScore - oldScore + newScore;
+        this.rating = totalScore / this.reviewCount;
+
+    }
+
+    public void updateRatingOnReviewDelete(double score) {
 
         if (this.reviewCount <= 1) {
             this.reviewCount = 0;
@@ -104,6 +108,18 @@ public class Book {
         this.reviewCount -= 1;
         this.rating = totalScore / this.reviewCount;
 
+    }
+
+    public void updateRatingOnReviewHardDelete(double score) {
+        if (this.reviewCount <= 1) {
+            this.reviewCount = 0;
+            this.rating = 0.0;
+            return;
+        }
+
+        double totalScore = this.rating * this.reviewCount;
+        totalScore -= score;
+        this.rating = totalScore / this.reviewCount;
     }
 
     public void softDelete() {

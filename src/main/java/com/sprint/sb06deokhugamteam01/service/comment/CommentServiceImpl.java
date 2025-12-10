@@ -87,6 +87,10 @@ public class CommentServiceImpl implements CommentService {
             throw new CommentAccessDeniedException(Map.of("userId", userId));
         }
         comment.markAsDeleted();
+
+        Review review = comment.getReview();
+        review.decreaseCommentCount();
+        reviewRepository.save(review);
         log.info("댓글 논리 삭제 완료: commentId={}", commentId);
     }
 
@@ -99,7 +103,11 @@ public class CommentServiceImpl implements CommentService {
         if (!comment.getUser().getId().equals(userId)) {
             throw new CommentAccessDeniedException(Map.of("userId", userId));
         }
+        Review review = comment.getReview();
         commentRepository.hardDeleteById(commentId);
+
+        if (review.isActive()) review.decreaseCommentCount(); // soft delete 되지 않았을 때만 카운트 낮춤.
+        reviewRepository.save(review);
         log.info("댓글 물리 삭제 완료: commentId={}", commentId);
     }
 

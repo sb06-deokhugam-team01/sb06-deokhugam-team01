@@ -7,8 +7,6 @@ import java.util.Map;
 
 public class ReviewNotFoundException extends RootException {
 
-    ErrorCode errorCode = ErrorCode.REVIEW_NOT_FOUND;
-
     public ReviewNotFoundException(Map<String, Object> details) {
         super(ErrorCode.REVIEW_NOT_FOUND, details);
     }

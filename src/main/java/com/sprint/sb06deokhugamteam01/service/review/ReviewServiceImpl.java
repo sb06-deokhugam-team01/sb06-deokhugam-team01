@@ -16,10 +16,10 @@ import com.sprint.sb06deokhugamteam01.dto.review.response.CursorPageResponsePopu
 import com.sprint.sb06deokhugamteam01.dto.review.response.CursorPageResponseReviewDto;
 import com.sprint.sb06deokhugamteam01.dto.review.response.ReviewDto;
 import com.sprint.sb06deokhugamteam01.dto.review.response.ReviewLikeDto;
+import com.sprint.sb06deokhugamteam01.exception.common.UnauthorizedAccessException;
 import com.sprint.sb06deokhugamteam01.exception.review.InvalidReviewCursorException;
 import com.sprint.sb06deokhugamteam01.exception.review.ReviewAlreadyExistsException;
 import com.sprint.sb06deokhugamteam01.exception.review.ReviewNotFoundException;
-import com.sprint.sb06deokhugamteam01.exception.user.InvalidUserException;
 import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.mapper.ReviewMapper;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
@@ -81,8 +81,8 @@ public class ReviewServiceImpl implements ReviewService {
 
         Review savedReview = reviewRepository.save(review);
 
-        // TODO Book의 reviewCount 1 증가
-        // TODO Book의 Rating 업데이트
+        book.updateRatingOnNewReview(request.rating());
+        bookRepository.save(book);
         return reviewMapper.toDto(savedReview, user);
     }
 
@@ -155,7 +155,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .ascending(ascending)
                 .cursor(request.cursor())
                 .after(request.after())
-                .limit(request.limit())
+                .limit(limit)
                 .build();
 
         Slice<Review> slice
@@ -238,7 +238,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .descending(descending)
                 .cursor(request.cursor())
                 .after(request.after())
-                .limit(request.limit())
+                .limit(limit)
                 .build();
 
         Slice<Review> slice = reviewRepository.getPopularReviews(condition, pageable);
@@ -289,15 +289,18 @@ public class ReviewServiceImpl implements ReviewService {
 
         // 작성자 == 요청자인지 검증
         if (!review.getUser().getId().equals(user.getId())) {
-            throw new InvalidUserException(detailMap("userId", requestUserId));
+            throw new UnauthorizedAccessException(detailMap("userId", requestUserId));
         }
 
         if (updateRequest.content() != null) {
             review.updateContent(updateRequest.content());
         }
         if (updateRequest.rating() != null) {
-            review.updateRating(updateRequest.rating());
-            // TODO Book의 Rating 업데이트
+            int oldRating = review.getRating();
+            int newRating = updateRequest.rating();
+            review.updateRating(newRating);
+            review.getBook().updateRatingOnReviewUpdate(oldRating, newRating);
+            bookRepository.save(review.getBook());
         }
 
         Review savedReview = reviewRepository.save(review);
@@ -316,10 +319,12 @@ public class ReviewServiceImpl implements ReviewService {
 
         // 작성자 == 요청자인지 검증
         if (!review.getUser().getId().equals(user.getId())) {
-            throw new InvalidUserException(detailMap("userId", requestUserId));
+            throw new UnauthorizedAccessException(detailMap("userId", requestUserId));
         }
-        // TODO Book의 reviewCount 1 감소
-        // TODO Book의 Rating 업데이트
+
+        Book book = review.getBook();
+        book.updateRatingOnReviewDelete(review.getRating());
+        bookRepository.save(book);
 
         review.softDelete();
         reviewRepository.save(review);
@@ -337,16 +342,17 @@ public class ReviewServiceImpl implements ReviewService {
 
         Book book = review.getBook();
 
-        // TODO Book의 reviewCount 1 감소 (soft delete 상태면 건너뜀)
-        // if (review.isActive()) book.decreaseReviewCount();
+        if (review.isActive()) {
+            book.updateRatingOnReviewDelete(review.getRating());
+        } else {
+            book.updateRatingOnReviewHardDelete(review.getRating());
+        }
+        bookRepository.save(book);
 
         commentRepository.deleteAllByReview(review);
         reviewLikeRepository.deleteByReview(review);
+        batchReviewRatingRepository.deleteByReview_Id(reviewId);
         reviewRepository.delete(review);
-
-        // TODO Book의 Rating 업데이트
-        // book.calculateRating();
-        // bookRepository.save(book);
     }
 
     @Override
