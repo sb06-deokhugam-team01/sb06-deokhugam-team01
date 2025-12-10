@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - release
   workflow_dispatch:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_ALIAS: ${{ secrets.ECR_ALIAS }}
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
   ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
