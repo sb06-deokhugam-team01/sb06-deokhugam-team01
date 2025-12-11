@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 public interface BatchBookRatingRepository extends JpaRepository<BatchBookRating, UUID> {
 
@@ -16,5 +18,7 @@ public interface BatchBookRatingRepository extends JpaRepository<BatchBookRating
             UUID bookId
     );
 
+    @Modifying
+    @Query("DELETE FROM BatchBookRating b WHERE b.book.id = :bookId")
     void deleteByBook_Id(UUID bookId);
 }

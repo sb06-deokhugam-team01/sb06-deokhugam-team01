@@ -199,8 +199,9 @@ public class BookServiceImpl implements  BookService {
             throw new BookNotFoundException(detailMap("id", id));
         }
 
-        batchReviewRatingRepository.deleteByReview_IdIn(reviewRepository.findByBook_Id(id).stream()
-                .map(Review::getId).toList());
+        List<UUID> reviewIds = reviewRepository.findIdsByBook_Id(id);
+
+        batchReviewRatingRepository.deleteByReview_IdIn(reviewIds);
         batchBookRatingRepository.deleteByBook_Id(id);
         reviewRepository.softDeleteByBookId(id);
         book.softDelete();
