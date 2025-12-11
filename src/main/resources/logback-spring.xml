@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProperty scope="context" name="LOG_ARCHIVE_PATH" source="log.path.archive"/>
+    <springProperty scope="context" name="LOG_CURRENT_PATH" source="log.path.current"/>
+
+    <property name="DEFAULT_LOG_PATTERN_STRING" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level **[%X{requestId}] [%X{clientIp}]** %logger{36} - %msg%n" />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>true</withJansi> <encoder>
+        <pattern>${DEFAULT_LOG_PATTERN_STRING}</pattern>
+    </encoder>
+    </appender>
+
+    <appender name="DAILY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_CURRENT_PATH}application.log</file>
+        <encoder>
+            <pattern>${DEFAULT_LOG_PATTERN_STRING}</pattern>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_ARCHIVE_PATH}app-log-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="DAILY_FILE" />
+    </root>
+
+</configuration>

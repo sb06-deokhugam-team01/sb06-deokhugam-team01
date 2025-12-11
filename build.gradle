@@ -2,6 +2,15 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.8'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
+}
+
+jacocoTestReport {
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.outputLocation.set(layout.buildDirectory.dir('jacocoHtml'))
+    }
 }
 
 group = 'com.sprint'
@@ -28,14 +37,21 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'org.postgresql:postgresql'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
+
     annotationProcessor 'org.projectlombok:lombok'
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3:3.0.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.jeasy:easy-random:5.0.0'
+    testImplementation 'org.jeasy:easy-random-core:5.0.0'
+
+    // Spring Doc
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
 
     //querydsl
     implementation 'io.github.openfeign.querydsl:querydsl-jpa-spring:7.0'
@@ -44,4 +60,12 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }
+
+// 로컬 테스트 통과 위한 임시조치
+//test {
+//    systemProperty 'NAVER_API_CLIENT_ID', 'temp_id'
+//    systemProperty 'NAVER_API_CLIENT_SECRET', 'temp_secret'
+//    systemProperty 'OCR_SPACE_API_KEY', 'temp_ocr_key'
+//}

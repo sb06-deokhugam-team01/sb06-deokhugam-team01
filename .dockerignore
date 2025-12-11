@@ -1,0 +1,9 @@
+build
+.gradle
+.idea
+out
+*.iml
+node_modules
+*.log
+tmp
+.env
