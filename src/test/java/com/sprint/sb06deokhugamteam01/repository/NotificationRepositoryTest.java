@@ -2,7 +2,6 @@ package com.sprint.sb06deokhugamteam01.repository;
 
 import com.sprint.sb06deokhugamteam01.config.QueryDslConfig;
 import com.sprint.sb06deokhugamteam01.domain.Notification;
-import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.repository.notification.NotificationRepository;
 import jakarta.persistence.EntityManager;
@@ -13,11 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
