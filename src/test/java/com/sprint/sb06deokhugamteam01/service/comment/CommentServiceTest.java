@@ -58,27 +58,24 @@ public class CommentServiceTest {
     @DisplayName("댓글 등록 성공")
     void createComment_Success(){
         // given
-        UUID requesterId = UUID.randomUUID();
-        UUID reviewOwnerId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
         UUID reviewId = UUID.randomUUID();
 
-        User requester = User.builder().nickname("요청자").build();
-        ReflectionTestUtils.setField(requester, "id", requesterId);
-        User reviewOwner = User.builder().nickname("리뷰 작성자").build();
-        ReflectionTestUtils.setField(reviewOwner, "id", reviewOwnerId);
-        Review review = Review.builder().user(reviewOwner).build();
+        User user = User.builder().nickname("유저").build();
+        ReflectionTestUtils.setField(user, "id", userId);
+        Review review = Review.builder().user(user).build();
         ReflectionTestUtils.setField(review, "id", reviewId);
 
         String content = "댓글";
 
-        given(userRepository.findById(requesterId)).willReturn(Optional.of(requester));
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(reviewRepository.findById(reviewId)).willReturn(Optional.of(review));
         given(commentRepository.save(any(Comment.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
         given(notificationRepository.save(any(Notification.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        CommentCreateRequest request = new CommentCreateRequest(reviewId, requesterId, content);
+        CommentCreateRequest request = new CommentCreateRequest(reviewId, userId, content);
 
         // when
         CommentDto result = commentService.createComment(request);
@@ -87,7 +84,7 @@ public class CommentServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.reviewId()).isEqualTo(reviewId);
         assertThat(result.content()).isEqualTo(content);
-        assertThat(result.userNickname()).isEqualTo("요청자");
+        assertThat(result.userNickname()).isEqualTo("유저");
         verify(commentRepository).save(any(Comment.class));
         verify(notificationRepository).save(any(Notification.class));
     }
