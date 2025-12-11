@@ -12,6 +12,7 @@ import com.sprint.sb06deokhugamteam01.exception.book.S3UploadFailedException;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
 import com.sprint.sb06deokhugamteam01.repository.batch.BatchBookRatingRepository;
+import com.sprint.sb06deokhugamteam01.repository.batch.BatchReviewRatingRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +57,9 @@ class BookServiceImplTest {
 
     @Mock
     private BatchBookRatingRepository batchBookRatingRepository;
+
+    @Mock
+    private BatchReviewRatingRepository batchReviewRatingRepository;
 
     @Mock
     private OcrService ocrService;
@@ -368,6 +372,9 @@ class BookServiceImplTest {
         //when
         when(bookRepository.findByIdAndIsActive(bookId, true))
                 .thenReturn(Optional.of(book));
+
+        when(reviewRepository.findByBook_Id(bookId))
+                .thenReturn(emptyList());
 
         //then
         assertDoesNotThrow(() -> {

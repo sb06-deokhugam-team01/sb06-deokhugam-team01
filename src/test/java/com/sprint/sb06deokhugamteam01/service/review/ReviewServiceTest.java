@@ -248,7 +248,7 @@ class ReviewServiceTest {
 
         when(reviewMapper.toDto(any(Review.class), any(User.class), any())).thenReturn(mockReviewDto);
         when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
-        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(testReview));
+        when(reviewRepository.findByIdAndIsActiveTrue(reviewId)).thenReturn(Optional.of(testReview));
 
         // when
         ReviewDto response = reviewService.getReview(reviewId, requestUserId);
@@ -260,7 +260,7 @@ class ReviewServiceTest {
         assertThat(response.bookTitle()).isEqualTo(testBook.getTitle());
         assertThat(response.content()).isEqualTo("테스트내용");
 
-        verify(reviewRepository, times(1)).findById(reviewId);
+        verify(reviewRepository, times(1)).findByIdAndIsActiveTrue(reviewId);
     }
 
     @Test
@@ -269,14 +269,14 @@ class ReviewServiceTest {
 
         // given
         when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
-        when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
+        when(reviewRepository.findByIdAndIsActiveTrue(reviewId)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> reviewService.getReview(reviewId, requestUserId))
                 .isInstanceOf(ReviewNotFoundException.class);
 
         verify(userRepository, times(1)).findById(requestUserId);
-        verify(reviewRepository, times(1)).findById(reviewId);
+        verify(reviewRepository, times(1)).findByIdAndIsActiveTrue(reviewId);
     }
 
     @Test

@@ -1,4 +1,4 @@
-package com.sprint.sb06deokhugamteam01.config;
+package com.sprint.sb06deokhugamteam01.config.logging;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

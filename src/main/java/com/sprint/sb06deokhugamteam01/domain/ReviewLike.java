@@ -32,7 +32,7 @@ public class ReviewLike {
     @CreatedDate
     private LocalDateTime createdAt;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "review_id")
     private Review review;
 

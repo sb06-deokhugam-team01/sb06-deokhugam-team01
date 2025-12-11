@@ -1,9 +1,9 @@
 package com.sprint.sb06deokhugamteam01.service.book;
 
+import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.domain.batch.BatchBookRating;
 import com.sprint.sb06deokhugamteam01.domain.book.Book;
 import com.sprint.sb06deokhugamteam01.domain.book.BookOrderBy;
-import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.dto.book.BookDto;
 import com.sprint.sb06deokhugamteam01.dto.book.PopularBookDto;
 import com.sprint.sb06deokhugamteam01.dto.book.request.BookCreateRequest;
@@ -19,8 +19,8 @@ import com.sprint.sb06deokhugamteam01.exception.book.S3UploadFailedException;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
 import com.sprint.sb06deokhugamteam01.repository.batch.BatchBookRatingRepository;
+import com.sprint.sb06deokhugamteam01.repository.batch.BatchReviewRatingRepository;
 import com.sprint.sb06deokhugamteam01.repository.book.PopularBookQRepository;
-import com.sprint.sb06deokhugamteam01.repository.batch.BatchBookRatingRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
@@ -41,6 +41,7 @@ public class BookServiceImpl implements  BookService {
     private final ReviewRepository reviewRepository;
     private final PopularBookQRepository popularBookQRepository;
     private final BatchBookRatingRepository batchBookRatingRepository;
+    private final BatchReviewRatingRepository batchReviewRatingRepository;
     private final BookSearchService bookSearchService;
     private final OcrService ocrService;
     private final S3StorageService s3StorageService;
@@ -103,7 +104,9 @@ public class BookServiceImpl implements  BookService {
                             String presignedUrl = s3StorageService.getPresignedUrl(batchBookRating.getBook().getThumbnailUrl());
                             return PopularBookDto.fromEntityWithImageUrl(batchBookRating.getBook(), batchBookRating, presignedUrl);
                         }
-                ).toList())
+                )
+                        .limit(bookSlice.getContent().size() - (bookSlice.hasNext() ? 1 : 0))
+                        .toList())
                 .nextCursor(bookSlice.hasNext() ?
                         bookSlice.getContent().get(bookSlice.getContent().size() -1).getBook().getId().toString() : null)
                 .nextAfter(bookSlice.hasNext() ?
@@ -140,16 +143,12 @@ public class BookServiceImpl implements  BookService {
     @Transactional
     @Override
     public String getIsbnByImage(MultipartFile image) {
-
-        String isbn = null;
         try {
-            isbn = ocrService.extractIsbnFromImage(image.getBytes(), image.getOriginalFilename().split("\\.")[1]);
+            String isbn = ocrService.extractIsbnFromImage(image.getBytes(), image.getOriginalFilename().split("\\.")[1]);
+            return isbn;
         } catch (IOException e) {
             throw new InvalidIsbnException(new HashMap<>());
         }
-
-        return isbn;
-
     }
 
     @Transactional
@@ -200,6 +199,10 @@ public class BookServiceImpl implements  BookService {
             throw new BookNotFoundException(detailMap("id", id));
         }
 
+        batchReviewRatingRepository.deleteByReview_IdIn(reviewRepository.findByBook_Id(id).stream()
+                .map(Review::getId).toList());
+        batchBookRatingRepository.deleteByBook_Id(id);
+        reviewRepository.softDeleteByBookId(id);
         book.softDelete();
 
     }

@@ -1,4 +1,4 @@
-package com.sprint.sb06deokhugamteam01.config;
+package com.sprint.sb06deokhugamteam01.config.logging;
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;

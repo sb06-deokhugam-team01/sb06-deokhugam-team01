@@ -67,7 +67,7 @@ public class ReviewServiceImpl implements ReviewService {
         Book book = bookRepository.findById(request.bookId())
                 .orElseThrow(() -> new BookNotFoundException(detailMap("bookId", request.bookId())));
 
-        if (reviewRepository.existsByUserAndBook(user, book)) {
+        if (reviewRepository.findByBookAndUserAndIsActiveTrue(book, user).isPresent()) {
             Map<String, Object> details = new HashMap<>();
             details.put("userId", user.getId());
             details.put("bookId", book.getId());
@@ -100,7 +100,7 @@ public class ReviewServiceImpl implements ReviewService {
         User requestUser = userRepository.findById(requestUserId)
                 .orElseThrow(() -> new UserNotFoundException(detailMap("userId", requestUserId)));
 
-        Review review = reviewRepository.findById(reviewId)
+        Review review = reviewRepository.findByIdAndIsActiveTrue(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(detailMap("reviewId", reviewId)));
 
         Book book = review.getBook();
@@ -395,14 +395,17 @@ public class ReviewServiceImpl implements ReviewService {
                     .review(review)
                     .build();
             reviewLikeRepository.save(reviewLike);
-            Notification notification = Notification.builder()
-                    .user(review.getUser())
-                    .review(review)
-                    .confirmed(false)
-                    .content("[" + user.getNickname() + "]님이 나의 리뷰를 좋아합니다.")
-                    .build();
 
-            notificationRepository.save(notification);
+            if (requestUserId != review.getUser().getId()) {
+                Notification notification = Notification.builder()
+                        .user(review.getUser())
+                        .review(review)
+                        .confirmed(false)
+                        .content("[" + user.getNickname() + "]님이 나의 리뷰를 좋아합니다.")
+                        .build();
+                notificationRepository.save(notification);
+            }
+
             review.increaseLikeCount();
             liked = true;
         }
