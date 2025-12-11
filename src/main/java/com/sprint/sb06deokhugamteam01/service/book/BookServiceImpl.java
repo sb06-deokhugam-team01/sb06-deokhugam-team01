@@ -141,16 +141,12 @@ public class BookServiceImpl implements  BookService {
     @Transactional
     @Override
     public String getIsbnByImage(MultipartFile image) {
-
-        String isbn = null;
         try {
-            isbn = ocrService.extractIsbnFromImage(image.getBytes(), image.getOriginalFilename().split("\\.")[1]);
+            String isbn = ocrService.extractIsbnFromImage(image.getBytes(), image.getOriginalFilename().split("\\.")[1]);
+            return isbn;
         } catch (IOException e) {
             throw new InvalidIsbnException(new HashMap<>());
         }
-
-        return isbn;
-
     }
 
     @Transactional
