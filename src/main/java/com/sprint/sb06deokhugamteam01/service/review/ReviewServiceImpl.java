@@ -395,14 +395,17 @@ public class ReviewServiceImpl implements ReviewService {
                     .review(review)
                     .build();
             reviewLikeRepository.save(reviewLike);
-            Notification notification = Notification.builder()
-                    .user(review.getUser())
-                    .review(review)
-                    .confirmed(false)
-                    .content("[" + user.getNickname() + "]님이 나의 리뷰를 좋아합니다.")
-                    .build();
 
-            notificationRepository.save(notification);
+            if (requestUserId != review.getUser().getId()) {
+                Notification notification = Notification.builder()
+                        .user(review.getUser())
+                        .review(review)
+                        .confirmed(false)
+                        .content("[" + user.getNickname() + "]님이 나의 리뷰를 좋아합니다.")
+                        .build();
+                notificationRepository.save(notification);
+            }
+
             review.increaseLikeCount();
             liked = true;
         }
