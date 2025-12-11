@@ -20,9 +20,11 @@ import com.sprint.sb06deokhugamteam01.mapper.ReviewMapper;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
 import com.sprint.sb06deokhugamteam01.repository.batch.BatchReviewRatingRepository;
+import com.sprint.sb06deokhugamteam01.repository.notification.NotificationRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewLikeRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import com.sprint.sb06deokhugamteam01.repository.user.UserRepository;
+import com.sprint.sb06deokhugamteam01.service.book.S3StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,6 +60,9 @@ class ReviewServiceTest {
     private BatchReviewRatingRepository batchReviewRatingRepository;
 
     @Mock
+    private NotificationRepository notificationRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -68,6 +73,9 @@ class ReviewServiceTest {
 
     @Mock
     private ReviewMapper reviewMapper;
+
+    @Mock
+    private S3StorageService s3StorageService;
 
     @InjectMocks
     private ReviewServiceImpl reviewService;
@@ -189,7 +197,7 @@ class ReviewServiceTest {
                 .rating(request.rating())
                 .build();
 
-        when(reviewMapper.toDto(any(Review.class), any(User.class))).thenReturn(mockReviewDto);
+        when(reviewMapper.toDto(any(Review.class), any(User.class), any())).thenReturn(mockReviewDto);
         when(reviewRepository.save(any(Review.class))).thenReturn(mockSavedReview);
 
         // when
@@ -238,9 +246,9 @@ class ReviewServiceTest {
                 .rating(testReview.getRating())
                 .build();
 
-        when(reviewMapper.toDto(any(Review.class), any(User.class))).thenReturn(mockReviewDto);
+        when(reviewMapper.toDto(any(Review.class), any(User.class), any())).thenReturn(mockReviewDto);
         when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
-        when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(testReview));
+        when(reviewRepository.findByIdAndIsActiveTrue(reviewId)).thenReturn(Optional.of(testReview));
 
         // when
         ReviewDto response = reviewService.getReview(reviewId, requestUserId);
@@ -252,7 +260,7 @@ class ReviewServiceTest {
         assertThat(response.bookTitle()).isEqualTo(testBook.getTitle());
         assertThat(response.content()).isEqualTo("테스트내용");
 
-        verify(reviewRepository, times(1)).findById(reviewId);
+        verify(reviewRepository, times(1)).findByIdAndIsActiveTrue(reviewId);
     }
 
     @Test
@@ -261,14 +269,14 @@ class ReviewServiceTest {
 
         // given
         when(userRepository.findById(requestUserId)).thenReturn(Optional.of(testRequestUser));
-        when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
+        when(reviewRepository.findByIdAndIsActiveTrue(reviewId)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> reviewService.getReview(reviewId, requestUserId))
                 .isInstanceOf(ReviewNotFoundException.class);
 
         verify(userRepository, times(1)).findById(requestUserId);
-        verify(reviewRepository, times(1)).findById(reviewId);
+        verify(reviewRepository, times(1)).findByIdAndIsActiveTrue(reviewId);
     }
 
     @Test
@@ -407,7 +415,7 @@ class ReviewServiceTest {
                 .rating(updateRequest.rating())
                 .build();
 
-        when(reviewMapper.toDto(any(Review.class), any(User.class))).thenReturn(mockReviewDto);
+        when(reviewMapper.toDto(any(Review.class), any(User.class), any())).thenReturn(mockReviewDto);
 
         // when
         ReviewDto response = reviewService.updateReview(reviewId, updateRequest, userId);

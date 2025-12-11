@@ -9,6 +9,7 @@ import com.sprint.sb06deokhugamteam01.repository.notification.NotificationReposi
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -28,11 +29,12 @@ public class NotificationServiceImpl implements NotificationService {
         Notification optionalNotification = notificationRepository.findById(notificationId)
             .orElseThrow(() -> new NotificationNotFoundException(Map.of("notificationId", notificationId)));
 
-        if(optionalNotification.getUser().getId() != userId) {
+        if(optionalNotification.getUser() == null ||
+            !Objects.equals(optionalNotification.getUser().getId(), userId)){
             throw new UnauthorizedAccessException(Map.of("userId", userId, "notificationId", notificationId));
         }
 
-        optionalNotification.changeConfirm(confirmed);
+        optionalNotification.confirm();
 
         return optionalNotification;
     }

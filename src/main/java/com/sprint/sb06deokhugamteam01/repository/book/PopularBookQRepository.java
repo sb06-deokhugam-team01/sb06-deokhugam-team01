@@ -51,12 +51,12 @@ public interface PopularBookQRepository extends QuerydslJpaRepository<BatchBookR
         BooleanBuilder builder = new BooleanBuilder();
 
         //기간 필터링
-        Optional<LocalDate> lastDate = Optional.ofNullable(Objects.requireNonNull(selectFrom(qBatchBookRating)
-                        .where(qBatchBookRating.periodType.eq(request.period()))
-                        .orderBy(qBatchBookRating.periodEnd.desc())
-                        .limit(1)
-                        .fetchOne())
-                .getPeriodEnd());
+        Optional<LocalDate> lastDate = Optional.ofNullable(selectFrom(qBatchBookRating)
+                .where(qBatchBookRating.periodType.eq(request.period()))
+                .orderBy(qBatchBookRating.periodEnd.desc())
+                .limit(1)
+                .select(qBatchBookRating.periodEnd)
+                .fetchOne());
 
         lastDate.ifPresent(localDate -> builder.and(qBatchBookRating.periodEnd.eq(localDate)));
 

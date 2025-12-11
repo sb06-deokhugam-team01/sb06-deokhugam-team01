@@ -1,6 +1,7 @@
 package com.sprint.sb06deokhugamteam01.domain.batch;
 
 import com.sprint.sb06deokhugamteam01.domain.User;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -58,7 +59,7 @@ public class BatchUserRating {
     @Column(name = "period_end", nullable = false)
     private LocalDate periodEnd;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

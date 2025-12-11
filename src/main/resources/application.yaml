@@ -11,6 +11,8 @@ spring:
       s3:
         bucket: ${AWS_S3_BUCKET:aaa}
         presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION:PT10H}
+        log-bucket: ${AWS_S3_LOG_BUCKET:deokhugam-logs}
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/deokhugam}
     username: ${SPRING_DATASOURCE_USERNAME:deokhugam}
@@ -32,3 +34,7 @@ ocr:
     api:
       endpoint: https://api.ocr.space/parse/image
       key: ${OCR_SPACE_API_KEY:aaa}
+log:
+  path:
+    current: ./logs/
+    archive: ./logs/archive/

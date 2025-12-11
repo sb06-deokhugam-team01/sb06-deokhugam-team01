@@ -6,9 +6,11 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.sprint.sb06deokhugamteam01.domain.QComment;
 import com.sprint.sb06deokhugamteam01.domain.batch.BatchReviewRating;
 import com.sprint.sb06deokhugamteam01.domain.batch.QBatchBookRating;
 import com.sprint.sb06deokhugamteam01.domain.batch.QBatchReviewRating;
+import com.sprint.sb06deokhugamteam01.domain.book.QBook;
 import com.sprint.sb06deokhugamteam01.dto.review.PopularReviewSearchCondition;
 import com.sprint.sb06deokhugamteam01.domain.QReview;
 import com.sprint.sb06deokhugamteam01.domain.Review;
@@ -32,6 +34,8 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
     private final QReview qReview = QReview.review;
+    private final QBook qBook = QBook.book;
+    private final QComment qComment = QComment.comment;
     private final QBatchReviewRating qBatchReviewRating = QBatchReviewRating.batchReviewRating;
 
     @Override
@@ -52,7 +56,8 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                         bookIdEq(condition.bookId()),
                         keywordContains(condition.keyword()),
                         // soft delete 고려
-                        qReview.isActive.isTrue()
+                        qReview.isActive.isTrue(),
+                        qReview.book.isActive
                 )
                 .orderBy(
                         // 주 정렬 조건
@@ -170,7 +175,8 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .where(
                         periodCondition,
                         cursorCondition,
-                        qReview.isActive.isTrue()
+                        qReview.isActive.isTrue(),
+                        qReview.book.isActive
                 )
                 .orderBy(
                         getBatchPrimaryOrderSpecifier(descending),
@@ -191,6 +197,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         // Review ID 추출 및 Review 엔티티 조회 (N+1 방지 대신 ID List 조회 방식 사용)
         List<UUID> reviewIds = limitedBatchResults.stream()
                 .map(rating -> rating.getReview().getId())
+                .distinct()
                 .collect(Collectors.toList());
 
         List<Review> results = queryFactory
@@ -203,9 +210,25 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
         List<Review> orderedReviews = limitedBatchResults.stream()
                 .map(r -> reviewMap.get(r.getReview().getId()))
                 .filter(Objects::nonNull)
+                .distinct()
                 .collect(Collectors.toList());
 
         return new SliceImpl<>(orderedReviews, pageable, hasNext);
+    }
+
+    @Override
+    public void softDeleteByBookId(UUID bookId) {
+
+        queryFactory.update(qComment)
+                .where(qComment.review.book.id.eq(bookId))
+                .set(qComment.isActive, false)
+                .execute();
+
+        queryFactory.update(qReview)
+                .where(qReview.book.id.eq(bookId))
+                .set(qReview.isActive, false)
+                .execute();
+
     }
 
     /**

@@ -17,4 +17,7 @@ public interface BatchReviewRatingRepository extends JpaRepository<BatchReviewRa
     );
 
     void deleteByReview_Id(UUID reviewId);
+
+    void deleteByReview_IdIn(Iterable<UUID> reviewIds);
+
 }

@@ -8,9 +8,11 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRepositoryCustom {
 
@@ -23,5 +25,12 @@ public interface ReviewRepository extends JpaRepository<Review, UUID>, ReviewRep
     @Modifying
     @Query("DELETE FROM Review r WHERE r.isActive = false")
     void deleteAllByIsActiveFalse();
+
+    Optional<Review> findByBookAndUserAndIsActiveTrue(Book book, User user);
+
+    Optional<Review> findByIdAndIsActiveTrue(UUID id);
+
+    @Query("SELECT r.id FROM Review r WHERE r.book.id = :bookId")
+    List<UUID> findIdsByBook_Id(@Param("bookId") UUID bookId);
 
 }

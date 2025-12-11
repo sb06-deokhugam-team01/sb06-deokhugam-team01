@@ -8,6 +8,6 @@ import java.util.Map;
 public class InvalidReviewCursorException extends RootException {
 
     public InvalidReviewCursorException(Map<String, Object> details) {
-        super(ErrorCode.REVIEW_ALREADY_EXISTS, details);
+        super(ErrorCode.INVALID_REVIEW_CURSOR, details);
     }
 }

@@ -33,10 +33,10 @@ public class DeleteDeactivatedJobConfig {
     public Step deleteDeactivatedStep() {
         return new StepBuilder("deleteDeactivatedStep", jobRepository)
                 .tasklet((contribution, chunkContext) -> {
-                    deleteDeactivatedDataService.deleteDeactivatedBooks();
-                    deleteDeactivatedDataService.deleteDeactivatedUsers();
                     deleteDeactivatedDataService.deleteDeactivatedComments();
                     deleteDeactivatedDataService.deleteDeactivatedReviews();
+                    deleteDeactivatedDataService.deleteDeactivatedBooks();
+                    deleteDeactivatedDataService.deleteDeactivatedUsers();
                     deleteDeactivatedDataService.deleteDeactivatedNotifications();
                     return null;
                 }, transactionManager)

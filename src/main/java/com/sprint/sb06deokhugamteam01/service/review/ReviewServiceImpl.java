@@ -1,5 +1,6 @@
 package com.sprint.sb06deokhugamteam01.service.review;
 
+import com.sprint.sb06deokhugamteam01.domain.Notification;
 import com.sprint.sb06deokhugamteam01.domain.ReviewLike;
 import com.sprint.sb06deokhugamteam01.domain.batch.PeriodType;
 import com.sprint.sb06deokhugamteam01.domain.book.Book;
@@ -24,10 +25,12 @@ import com.sprint.sb06deokhugamteam01.exception.user.UserNotFoundException;
 import com.sprint.sb06deokhugamteam01.mapper.ReviewMapper;
 import com.sprint.sb06deokhugamteam01.repository.BookRepository;
 import com.sprint.sb06deokhugamteam01.repository.CommentRepository;
+import com.sprint.sb06deokhugamteam01.repository.notification.NotificationRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewLikeRepository;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
 import com.sprint.sb06deokhugamteam01.repository.batch.BatchReviewRatingRepository;
 import com.sprint.sb06deokhugamteam01.repository.user.UserRepository;
+import com.sprint.sb06deokhugamteam01.service.book.S3StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,7 +52,9 @@ public class ReviewServiceImpl implements ReviewService {
     private final BookRepository bookRepository;
     private final CommentRepository commentRepository;
     private final BatchReviewRatingRepository batchReviewRatingRepository;
+    private final NotificationRepository notificationRepository;
     private final ReviewMapper reviewMapper;
+    private final S3StorageService s3StorageService;
 
     @Override
     @Transactional
@@ -62,7 +67,7 @@ public class ReviewServiceImpl implements ReviewService {
         Book book = bookRepository.findById(request.bookId())
                 .orElseThrow(() -> new BookNotFoundException(detailMap("bookId", request.bookId())));
 
-        if (reviewRepository.existsByUserAndBook(user, book)) {
+        if (reviewRepository.findByBookAndUserAndIsActiveTrue(book, user).isPresent()) {
             Map<String, Object> details = new HashMap<>();
             details.put("userId", user.getId());
             details.put("bookId", book.getId());
@@ -83,7 +88,9 @@ public class ReviewServiceImpl implements ReviewService {
 
         book.updateRatingOnNewReview(request.rating());
         bookRepository.save(book);
-        return reviewMapper.toDto(savedReview, user);
+
+        String presignedUrl = s3StorageService.getPresignedUrl(book.getThumbnailUrl());
+        return reviewMapper.toDto(savedReview, user, presignedUrl);
     }
 
     @Override
@@ -93,10 +100,12 @@ public class ReviewServiceImpl implements ReviewService {
         User requestUser = userRepository.findById(requestUserId)
                 .orElseThrow(() -> new UserNotFoundException(detailMap("userId", requestUserId)));
 
-        Review review = reviewRepository.findById(reviewId)
+        Review review = reviewRepository.findByIdAndIsActiveTrue(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(detailMap("reviewId", reviewId)));
 
-        return reviewMapper.toDto(review, requestUser);
+        Book book = review.getBook();
+        String presignedUrl = s3StorageService.getPresignedUrl(book.getThumbnailUrl());
+        return reviewMapper.toDto(review, requestUser, presignedUrl);
     }
 
     @Override
@@ -169,7 +178,10 @@ public class ReviewServiceImpl implements ReviewService {
 
         // DTO로 변환
         List<ReviewDto> content = slice.getContent().stream()
-                .map(review -> reviewMapper.toDto(review, likedReviewIds.contains(requestUserId)))
+                .map(review -> {
+                    String presignedUrl = s3StorageService.getPresignedUrl(review.getBook().getThumbnailUrl());
+                    return reviewMapper.toDto(review, likedReviewIds.contains(requestUserId), presignedUrl);
+                })
                 .toList();
 
         // 커서 페이징 후처리
@@ -251,7 +263,10 @@ public class ReviewServiceImpl implements ReviewService {
 
         // DTO로 변환
         List<ReviewDto> content = slice.getContent().stream()
-                .map(review -> reviewMapper.toDto(review, likedReviewIds.contains(requestUserId)))
+                .map(review -> {
+                    String presignedUrl = s3StorageService.getPresignedUrl(review.getBook().getThumbnailUrl());
+                    return reviewMapper.toDto(review, likedReviewIds.contains(requestUserId), presignedUrl);
+                })
                 .toList();
 
         // 커서 페이징 후처리
@@ -304,7 +319,8 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         Review savedReview = reviewRepository.save(review);
-        return reviewMapper.toDto(savedReview, user);
+        String presignedUrl = s3StorageService.getPresignedUrl(review.getBook().getThumbnailUrl());
+        return reviewMapper.toDto(savedReview, user, presignedUrl);
     }
 
     @Override
@@ -379,6 +395,17 @@ public class ReviewServiceImpl implements ReviewService {
                     .review(review)
                     .build();
             reviewLikeRepository.save(reviewLike);
+
+            if (requestUserId != review.getUser().getId()) {
+                Notification notification = Notification.builder()
+                        .user(review.getUser())
+                        .review(review)
+                        .confirmed(false)
+                        .content("[" + user.getNickname() + "]님이 나의 리뷰를 좋아합니다.")
+                        .build();
+                notificationRepository.save(notification);
+            }
+
             review.increaseLikeCount();
             liked = true;
         }

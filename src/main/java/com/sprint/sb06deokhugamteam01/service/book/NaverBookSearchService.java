@@ -1,7 +1,7 @@
 package com.sprint.sb06deokhugamteam01.service.book;
 
-import com.sprint.sb06deokhugamteam01.dto.book.naver.BookData;
 import com.sprint.sb06deokhugamteam01.dto.book.BookDto;
+import com.sprint.sb06deokhugamteam01.dto.book.naver.BookData;
 import com.sprint.sb06deokhugamteam01.dto.book.naver.NaverBookSearchResponse;
 import com.sprint.sb06deokhugamteam01.exception.book.BookInfoFetchFailedException;
 import com.sprint.sb06deokhugamteam01.exception.book.BookNotFoundException;

@@ -5,6 +5,8 @@ import com.sprint.sb06deokhugamteam01.domain.User;
 import com.sprint.sb06deokhugamteam01.domain.Review;
 import com.sprint.sb06deokhugamteam01.dto.review.response.ReviewDto;
 import com.sprint.sb06deokhugamteam01.repository.review.ReviewLikeRepository;
+import com.sprint.sb06deokhugamteam01.repository.review.ReviewRepository;
+import com.sprint.sb06deokhugamteam01.service.book.S3StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +20,7 @@ public class ReviewMapper {
     private final ReviewLikeRepository reviewLikeRepository;
 
     // 단건 변환 시 사용
-    public ReviewDto toDto(Review review, User requestUser){
+    public ReviewDto toDto(Review review, User requestUser, String presignedUrl){
         User user = review.getUser();
         Book book = review.getBook();
 
@@ -29,7 +31,7 @@ public class ReviewMapper {
 
                 .bookId(book != null ? book.getId() : null)
                 .bookTitle(book != null ? book.getTitle() : null)
-                .bookThumbnailUrl(book != null ? book.getThumbnailUrl() : null)
+                .bookThumbnailUrl(book != null ? presignedUrl : null)
 
                 .userId(user != null ? user.getId() : null)
                 .userNickname(user != null ? user.getNickname() : null)
@@ -46,7 +48,7 @@ public class ReviewMapper {
     }
 
     // 다건 변환 시 사용
-    public ReviewDto toDto(Review review, boolean liked){
+    public ReviewDto toDto(Review review, boolean liked, String presignedUrl){
         User user = review.getUser();
         Book book = review.getBook();
 
@@ -55,7 +57,7 @@ public class ReviewMapper {
 
                 .bookId(book != null ? book.getId() : null)
                 .bookTitle(book != null ? book.getTitle() : null)
-                .bookThumbnailUrl(book != null ? book.getThumbnailUrl() : null)
+                .bookThumbnailUrl(book != null ? presignedUrl : null)
 
                 .userId(user != null ? user.getId() : null)
                 .userNickname(user != null ? user.getNickname() : null)

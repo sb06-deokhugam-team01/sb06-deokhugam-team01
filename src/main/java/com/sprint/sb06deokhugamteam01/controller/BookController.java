@@ -58,7 +58,7 @@ public class BookController {
             @RequestPart("thumbnailImage") MultipartFile thumbnailImage) {
         log.info("Received Book create request: isbn={}", request.author());
         BookDto createdBook = bookService.createBook(request, thumbnailImage);
-        log.info("Book created successfully: {}", createdBook);
+        log.info("Book created successfully: {}", createdBook.id());
 
         return new ResponseEntity<>(createdBook, HttpStatus.CREATED);
 
@@ -80,7 +80,7 @@ public class BookController {
             @PathVariable UUID bookId) {
         log.info("Received Book get request: bookId={}", bookId);
         BookDto bookDto = bookService.getBookById(bookId);
-        log.info("Book retrieved successfully: {}", bookDto);
+        log.info("Book retrieved successfully: {}", bookDto.id());
 
         return ResponseEntity.ok(bookDto);
 
@@ -104,7 +104,7 @@ public class BookController {
             @RequestPart(value = "thumbnailImage", required = false) MultipartFile thumbnailImage) {
         log.info("Received Book update request: bookId={}", bookId);
         BookDto updatedBook = bookService.updateBook(bookId, request, thumbnailImage);
-        log.info("Book updated successfully: {}", updatedBook);
+        log.info("Book updated successfully: {}", updatedBook.id());
 
         return ResponseEntity.ok(updatedBook);
 
@@ -117,7 +117,7 @@ public class BookController {
             @RequestParam String isbn) {
         log.info("Received Book get request: isbn={}", isbn);
         BookDto bookDto = bookService.getBookByIsbn(isbn);
-        log.info("Book retrieved successfully: {}", bookDto);
+        log.info("Book retrieved successfully: {}", bookDto.id());
 
         return ResponseEntity.ok(BookInfo.fromDto(bookDto));
 
