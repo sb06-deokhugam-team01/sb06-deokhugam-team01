@@ -100,7 +100,7 @@ public class ReviewServiceImpl implements ReviewService {
         User requestUser = userRepository.findById(requestUserId)
                 .orElseThrow(() -> new UserNotFoundException(detailMap("userId", requestUserId)));
 
-        Review review = reviewRepository.findById(reviewId)
+        Review review = reviewRepository.findByIdAndIsActiveTrue(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException(detailMap("reviewId", reviewId)));
 
         Book book = review.getBook();
