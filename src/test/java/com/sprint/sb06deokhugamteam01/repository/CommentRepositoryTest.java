@@ -136,6 +136,38 @@ public class CommentRepositoryTest {
         assertThat(result.comments().get(0).getCreatedAt()).isBeforeOrEqualTo(after);
     }
     @Test
+    @DisplayName("리뷰 댓글 목록 커서 페이징 조회 - 커서 동작")
+    void sliceComments_Cursor_ASC() {
+        // given
+        User user = userRepository.save(User.builder().build());
+        Review review = reviewRepository.save(Review.builder().build());
+
+        LocalDateTime now = LocalDateTime.now().withNano(0);
+        List<Comment> comments = new ArrayList<>();
+
+        for (int i = 0; i < 20; i++) { // 댓글 20개 저장
+            Comment comment = Comment.builder()
+                    .user(user).review(review).content("댓글 " + i).build();
+            commentRepository.save(comment);
+            forceUpdateCreatedAt(comment.getId(), now.minusMonths(i));
+            entityManager.refresh(comment);
+            comments.add(comment);
+        }
+
+        UUID cursor = comments.get(10).getId(); // 이전 페이지의 마지막 요소
+        LocalDateTime after = comments.get(10).getCreatedAt();
+        CommentSearchCondition condition = new CommentSearchCondition(
+                review.getId(), Sort.Direction.ASC, cursor, after, 10
+        );
+
+        // when
+        CommentSliceResult result = commentRepository.sliceComments(condition);
+
+        // then
+        assertThat(result.comments()).hasSize(10);
+        assertThat(result.hasNext()).isEqualTo(false);
+    }
+    @Test
     @DisplayName("리뷰 댓글 목록 커서 페이징 조회 - 동점자 처리 (생성 시각이 같으면 ID 오름차순)")
     void sliceComments_TieBreak() {
         // given

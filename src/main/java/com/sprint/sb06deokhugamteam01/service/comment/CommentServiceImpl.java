@@ -53,8 +53,10 @@ public class CommentServiceImpl implements CommentService {
         review.increaseCommentCount();
         commentRepository.save(comment);
 
+        if(!review.getUser().getId().equals(user.getId())) {
         notificationRepository.save(Notification.builder().user(review.getUser()).review(review)
                 .confirmed(false).content("[" + user.getNickname() + "]님이 나의 리뷰에 댓글을 남겼습니다.").build());
+        }
 
         log.info("댓글 생성 완료: id={}", comment.getId());
         return CommentDto.from(comment);
@@ -103,11 +105,12 @@ public class CommentServiceImpl implements CommentService {
         if (!comment.getUser().getId().equals(userId)) {
             throw new CommentAccessDeniedException(Map.of("userId", userId));
         }
-        Review review = comment.getReview();
-        commentRepository.hardDeleteById(commentId);
 
-        if (review.isActive()) review.decreaseCommentCount(); // soft delete 되지 않았을 때만 카운트 낮춤.
+        Review review = comment.getReview();
+        if (comment.isActive()) review.decreaseCommentCount(); // soft delete 되지 않았을 때만 카운트 낮춤.
         reviewRepository.save(review);
+
+        commentRepository.hardDeleteById(commentId);
         log.info("댓글 물리 삭제 완료: commentId={}", commentId);
     }
 
