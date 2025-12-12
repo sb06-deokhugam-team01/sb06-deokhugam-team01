@@ -20,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,7 +71,12 @@ public class BatchUserRatingRepositoryTest {
     @DisplayName("커서 페이징")
     void getList_NextPage() {
         // given
-        BatchUserRating target = batchUserRatingRepository.findAll().get(0);
+        List<BatchUserRating> all = batchUserRatingRepository.findAll();
+
+        BatchUserRating target = all.stream()
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .findFirst()
+                .orElseThrow();
 
         PowerUserRequest request = PowerUserRequest.builder().direction("DESC").period("WEEKLY")
                 .limit(10).cursor(target.getId().toString()).after(target.getCreatedAt()).build();
